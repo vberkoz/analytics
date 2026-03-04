@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirm Email - Analytics</title>
+    <link rel="stylesheet" href="auth.css">
+</head>
+<body>
+    <div class="container">
+        <div class="form-box">
+            <h1>Confirm Email</h1>
+            <form id="confirmForm">
+                <input type="email" id="email" placeholder="Email" required>
+                <input type="text" id="code" placeholder="Verification Code" required>
+                <button type="submit">Confirm</button>
+            </form>
+            <div id="error" class="error hidden"></div>
+            <div class="links">
+                <a href="login.html">Back to login</a>
+            </div>
+        </div>
+    </div>
+    <script src="auth.js"></script>
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const emailInput = document.getElementById('email');
+        if (params.get('email')) {
+            emailInput.value = params.get('email');
+        }
+
+        document.getElementById('confirmForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = emailInput.value;
+            const code = document.getElementById('code').value;
+            
+            try {
+                await confirmSignUp(email, code);
+                alert('Email confirmed! You can now login.');
+                window.location.href = 'login.html';
+            } catch (err) {
+                showError(err.message);
+            }
+        });
+    </script>
+</body>
+</html>

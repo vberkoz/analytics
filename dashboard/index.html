@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics Dashboard</title>
+    <link rel="stylesheet" href="common.css">
+    <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Analytics Dashboard</h1>
+            <div>
+                <button class="btn btn-success" onclick="showAddProject()" style="margin-right: 10px;">+ Add Project</button>
+                <button class="btn btn-primary" onclick="logout()">Logout</button>
+            </div>
+        </div>
+        
+        <div id="modals"></div>
+        
+        <div class="filters">
+            <div class="dropdown">
+                <button class="dropdown-trigger dropdown-input" onclick="toggleDropdown('projectMenu')" id="projectTrigger">
+                    <span>Select Project</span> <span>▼</span>
+                </button>
+                <div id="projectMenu" class="dropdown-menu hidden"></div>
+            </div>
+            <input type="date" id="startDate">
+            <input type="date" id="endDate">
+            <button class="btn btn-primary" onclick="loadData()">Refresh</button>
+            <button class="btn btn-danger" onclick="deleteProject()" style="margin-left: auto;">Delete Project</button>
+        </div>
+
+        <div class="stats">
+            <div class="stat">
+                <h3>Total Events</h3>
+                <div class="value" id="totalEvents">-</div>
+            </div>
+            <div class="stat">
+                <h3>Pageviews</h3>
+                <div class="value" id="pageviews">-</div>
+            </div>
+            <div class="stat">
+                <h3>Unique Screens</h3>
+                <div class="value" id="uniqueScreens">-</div>
+            </div>
+        </div>
+
+        <div class="events">
+            <h2>Recent Events</h2>
+            <div id="eventsTable" class="loading">Loading...</div>
+        </div>
+    </div>
+
+    <script src="auth.js"></script>
+    <script>
+        if (!isAuthenticated()) {
+            window.location.href = 'login.html';
+        }
+        
+        // Load modal components
+        fetch('modals.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('modals').innerHTML = html;
+            });
+    </script>
+    <script src="dashboard.js"></script>
+</body>
+</html>

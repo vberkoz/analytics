@@ -1,0 +1,29 @@
+<div id="addProjectModal" class="modal hidden">
+    <div class="modal-content">
+        <h2>Add New Project</h2>
+        <input type="text" id="newProjectId" placeholder="Project ID (e.g., my-website)">
+        <input type="text" id="newProjectName" placeholder="Project Name">
+        <div class="dropdown" style="width: 100%; margin-bottom: 15px;">
+            <button type="button" class="dropdown-trigger" onclick="toggleDropdown('projectTypeMenu')" id="projectTypeTrigger" style="width: 100%; padding: 10px 15px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; height: 40px; background: white; color: #333; text-align: left; display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
+                <span>Select Project Type</span> <span>▼</span>
+            </button>
+            <div id="projectTypeMenu" class="dropdown-menu hidden" style="width: 100%;">
+                <a href="#" onclick="selectProjectType('landing', 'Landing Page'); return false;">Landing Page</a>
+                <a href="#" onclick="selectProjectType('multipage', 'Multi-page Website'); return false;">Multi-page Website</a>
+                <a href="#" onclick="selectProjectType('webapp', 'Web Application'); return false;">Web Application</a>
+            </div>
+        </div>
+        <button class="btn btn-primary" onclick="addProject()">Create</button>
+        <button class="btn btn-secondary" onclick="hideAddProject()">Cancel</button>
+    </div>
+</div>
+
+<div id="trackingCodeModal" class="modal hidden">
+    <div class="modal-content">
+        <h2>Tracking Code</h2>
+        <p style="margin-bottom: 15px; color: #666;">Add this script to your website:</p>
+        <textarea id="trackingCode" readonly style="width: 100%; height: 60px; padding: 10px; font-family: monospace; font-size: 12px; background: #f5f5f5; border: 1px solid #ddd; border-radius: 4px;"></textarea>
+        <button class="btn btn-success" onclick="copyTrackingCode()">Copy Code</button>
+        <button class="btn btn-secondary" onclick="hideTrackingCode()">Close</button>
+    </div>
+</div>

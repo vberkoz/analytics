@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forgot Password - Analytics</title>
+    <link rel="stylesheet" href="auth.css">
+</head>
+<body>
+    <div class="container">
+        <div class="form-box">
+            <h1>Reset Password</h1>
+            <form id="forgotForm">
+                <input type="email" id="email" placeholder="Email" required>
+                <input type="text" id="code" placeholder="Verification Code">
+                <input type="password" id="newPassword" placeholder="New Password">
+                <button type="submit" id="submitBtn">Send Code</button>
+            </form>
+            <div id="error" class="error hidden"></div>
+            <div id="success" class="success hidden"></div>
+            <div class="links">
+                <a href="login.html">Back to login</a>
+            </div>
+        </div>
+    </div>
+    <script src="auth.js"></script>
+    <script>
+        let codeSent = false;
+
+        document.getElementById('forgotForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            
+            if (!codeSent) {
+                try {
+                    await forgotPassword(email);
+                    document.getElementById('success').textContent = 'Code sent! Check your email.';
+                    document.getElementById('success').classList.remove('hidden');
+                    document.getElementById('code').style.display = 'block';
+                    document.getElementById('newPassword').style.display = 'block';
+                    document.getElementById('submitBtn').textContent = 'Reset Password';
+                    codeSent = true;
+                } catch (err) {
+                    showError(err.message);
+                }
+            } else {
+                const code = document.getElementById('code').value;
+                const newPassword = document.getElementById('newPassword').value;
+                
+                try {
+                    await confirmPassword(email, code, newPassword);
+                    alert('Password reset! You can now login.');
+                    window.location.href = 'login.html';
+                } catch (err) {
+                    showError(err.message);
+                }
+            }
+        });
+    </script>
+</body>
+</html>

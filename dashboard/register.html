@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Analytics</title>
+    <link rel="stylesheet" href="auth.css">
+</head>
+<body>
+    <div class="container">
+        <div class="form-box">
+            <h1>Create Account</h1>
+            <form id="registerForm">
+                <input type="email" id="email" placeholder="Email" required>
+                <input type="password" id="password" placeholder="Password (min 8 chars)" required>
+                <button type="submit">Register</button>
+            </form>
+            <div id="error" class="error hidden"></div>
+            <div id="success" class="success hidden">Account created! Check your email for verification code.</div>
+            <div class="links">
+                <a href="login.html">Already have an account?</a>
+            </div>
+        </div>
+    </div>
+    <script src="auth.js"></script>
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                await register(email, password);
+                document.getElementById('success').classList.remove('hidden');
+                setTimeout(() => window.location.href = 'confirm.html?email=' + encodeURIComponent(email), 2000);
+            } catch (err) {
+                showError(err.message);
+            }
+        });
+    </script>
+</body>
+</html>
