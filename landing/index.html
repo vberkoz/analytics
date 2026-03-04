@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics Platform</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Analytics</h1>
+        <p class="tagline">Privacy-focused event tracking for landing pages</p>
+        
+        <div class="code-block">
+            <pre><code>&lt;script src="https://analytics.vberkoz.com/track.js"&gt;&lt;/script&gt;</code></pre>
+        </div>
+
+        <div class="features">
+            <div class="feature">
+                <h3>Lightweight</h3>
+                <p>~1KB tracking script</p>
+            </div>
+            <div class="feature">
+                <h3>Privacy-first</h3>
+                <p>No cookies, no PII</p>
+            </div>
+            <div class="feature">
+                <h3>Serverless</h3>
+                <p>AWS Lambda + DynamoDB</p>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2>Test Event Tracking</h2>
+            <form id="trackForm">
+                <input type="text" id="projectId" placeholder="Project ID (e.g., landing-001)" value="demo">
+                <select id="eventType">
+                    <option value="pageview">Pageview</option>
+                    <option value="click">Click</option>
+                    <option value="submit">Form Submit</option>
+                </select>
+                <button type="submit" id="trackBtn">Send Event</button>
+            </form>
+            <div id="result" class="result hidden"></div>
+            <div id="error" class="error hidden"></div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('trackForm');
+        const btn = document.getElementById('trackBtn');
+        const result = document.getElementById('result');
+        const error = document.getElementById('error');
+        const projectId = document.getElementById('projectId');
+        const eventType = document.getElementById('eventType');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            btn.disabled = true;
+            btn.textContent = 'Sending...';
+            result.classList.add('hidden');
+            error.classList.add('hidden');
+
+            try {
+                const response = await fetch('https://5sz981rz6d.execute-api.us-east-1.amazonaws.com/prod/event', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        project_id: projectId.value,
+                        event_type: eventType.value,
+                        timestamp: Date.now(),
+                        path: window.location.pathname,
+                        referrer: document.referrer || null,
+                        screen: `${window.screen.width}x${window.screen.height}`
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to send event');
+                }
+
+                result.innerHTML = '<p>✓ Event tracked successfully</p>';
+                result.classList.remove('hidden');
+            } catch (err) {
+                error.textContent = '✗ ' + err.message;
+                error.classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Send Event';
+            }
+        });
+    </script>
+</body>
+</html>
