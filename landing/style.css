@@ -73,68 +73,36 @@ h1 {
     opacity: 0.9;
 }
 
-.demo-section {
+.cta-section {
     margin-top: 60px;
-    background: rgba(255, 255, 255, 0.1);
-    padding: 40px;
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+}
+
+.btn {
+    padding: 15px 40px;
     border-radius: 8px;
-    backdrop-filter: blur(10px);
-}
-
-.demo-section h2 {
-    font-size: 2rem;
-    margin-bottom: 20px;
-}
-
-#projectId, #eventType {
-    width: 100%;
-    padding: 15px;
-    margin-bottom: 15px;
-    border: none;
-    border-radius: 4px;
-    font-size: 1rem;
-    background: rgba(0, 0, 0, 0.3);
-    color: #fff;
-}
-
-#trackBtn {
-    width: 100%;
-    padding: 15px;
-    border: none;
-    border-radius: 4px;
-    background: #fff;
-    color: #667eea;
-    font-size: 1rem;
+    font-size: 1.1rem;
     font-weight: 600;
-    cursor: pointer;
+    text-decoration: none;
     transition: transform 0.2s;
+    display: inline-block;
 }
 
-#trackBtn:hover:not(:disabled) {
+.btn:hover {
     transform: translateY(-2px);
 }
 
-#trackBtn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
+.btn-primary {
+    background: #fff;
+    color: #667eea;
 }
 
-.result, .error {
-    margin-top: 20px;
-    padding: 20px;
-    border-radius: 4px;
-}
-
-.result {
-    background: rgba(76, 175, 80, 0.2);
-}
-
-.error {
-    background: rgba(244, 67, 54, 0.2);
-}
-
-.hidden {
-    display: none;
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    border: 2px solid #fff;
 }
 
 @media (max-width: 768px) {
@@ -144,5 +112,13 @@ h1 {
     
     .tagline {
         font-size: 1.2rem;
+    }
+
+    .cta-section {
+        flex-direction: column;
+    }
+
+    .btn {
+        width: 100%;
     }
 }
