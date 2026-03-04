@@ -1,0 +1,74 @@
+# Analytics Platform
+
+Privacy-focused event tracking for landing pages.
+
+## Domains
+- Landing: https://analytics.vberkoz.com
+- Dashboard: https://dashboard.analytics.vberkoz.com
+
+## Architecture
+- **API Gateway** → POST /event, GET /query, GET/POST/DELETE /projects
+- **Lambda (Node.js)** → Event collector, query handler, projects manager
+- **DynamoDB** → Event storage (PK: project_id#date, SK: timestamp) + GSI1
+- **S3 + CloudFront** → Landing page + tracking script + dashboard
+- **Cognito** → User authentication for dashboard
+
+## API Endpoints
+- POST /event - Collect tracking events
+- GET /query - Query analytics data
+- GET /projects - List projects
+- POST /projects - Create project
+- DELETE /projects/{projectId} - Delete project
+
+## Data Model (DynamoDB)
+Table: analytics-data
+- PK: project_id#date (e.g., "mysite#2024-01-15")
+- SK: timestamp (milliseconds)
+- GSI1PK/GSI1SK: Secondary access patterns
+- Attributes: event_type, path, referrer, screen
+
+## Event Structure
+```json
+{
+  "project_id": "mysite",
+  "event_type": "pageview",
+  "timestamp": 1705334400000,
+  "path": "/landing",
+  "referrer": "https://google.com",
+  "screen": "1920x1080"
+}
+```
+
+## Deployment
+- IaC: CloudFormation (cloudformation.yaml)
+- Script: deploy.sh
+- Profile: basil
+- Region: us-east-1
+
+## Stack Resources
+- WebsiteBucket (S3) - Landing page
+- DashboardBucket (S3) - Dashboard UI
+- CloudFrontDistribution - Landing CDN
+- DashboardDistribution - Dashboard CDN
+- Certificate (ACM) - SSL for both domains
+- EventsTable (DynamoDB) - Data storage
+- CollectorFunction (Lambda) - Event collection
+- QueryFunction (Lambda) - Data queries
+- ProjectsFunction (Lambda) - Project management
+- RestApi (API Gateway) - HTTP API
+- UserPool (Cognito) - Authentication
+
+## Tech Stack
+- Backend: Node.js Lambda (collector, query, projects)
+- Frontend: Vanilla JS/HTML/CSS
+- Database: DynamoDB (PAY_PER_REQUEST)
+- CDN: CloudFront
+- Auth: Cognito User Pool
+- IaC: CloudFormation
+
+## Privacy & Security
+- CORS enabled for all endpoints
+- No PII collection
+- Cognito authentication for dashboard
+- Public S3 buckets for static content
+- HTTPS enforced via CloudFront
