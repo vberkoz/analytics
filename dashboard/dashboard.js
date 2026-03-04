@@ -145,32 +145,54 @@ async function loadData() {
             return;
         }
 
-        const table = `
-            <table>
-                <thead>
-                    <tr>
-                        <th>Time</th>
-                        <th>Event Type</th>
-                        <th>Path</th>
-                        <th>Referrer</th>
-                        <th>Screen</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${data.events.map(e => `
-                        <tr>
-                            <td>${new Date(parseInt(e.sk)).toLocaleString()}</td>
-                            <td>${e.event_type}</td>
-                            <td>${e.path}</td>
-                            <td>${e.referrer || '-'}</td>
-                            <td>${e.screen}</td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        `;
+        const sorted = data.events.sort((a, b) => parseInt(b.sk) - parseInt(a.sk));
+        const perPage = 20;
+        let currentPage = 1;
         
-        document.getElementById('eventsTable').innerHTML = table;
+        function renderTable() {
+            const start = (currentPage - 1) * perPage;
+            const end = start + perPage;
+            const page = sorted.slice(start, end);
+            const totalPages = Math.ceil(sorted.length / perPage);
+            
+            const table = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Event Type</th>
+                            <th>Path</th>
+                            <th>Referrer</th>
+                            <th>Screen</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${page.map(e => `
+                            <tr>
+                                <td>${new Date(parseInt(e.sk)).toLocaleString()}</td>
+                                <td>${e.event_type}</td>
+                                <td>${e.path}</td>
+                                <td>${e.referrer || '-'}</td>
+                                <td>${e.screen}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+                <div class="pagination">
+                    <button onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>Previous</button>
+                    <span>Page ${currentPage} of ${totalPages}</span>
+                    <button onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>Next</button>
+                </div>
+            `;
+            document.getElementById('eventsTable').innerHTML = table;
+        }
+        
+        window.changePage = (page) => {
+            currentPage = page;
+            renderTable();
+        };
+        
+        renderTable();
     } catch (err) {
         document.getElementById('eventsTable').innerHTML = `<div class="empty-state">Error: ${err.message}</div>`;
     }
