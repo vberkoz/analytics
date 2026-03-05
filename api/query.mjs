@@ -71,6 +71,7 @@ export const handler = async (event) => {
         referrer: item.referrer?.S || '',
         screen: item.screen.S,
         session_id: item.session_id?.S || '',
+        session_duration: item.session_duration?.N || '0',
         utm_source: item.utm_source?.S || '',
         utm_medium: item.utm_medium?.S || '',
         utm_campaign: item.utm_campaign?.S || '',

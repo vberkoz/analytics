@@ -124,6 +124,11 @@ async function loadData() {
         return;
     }
 
+    document.getElementById('totalEvents').innerHTML = '<span class="spinner"></span>';
+    document.getElementById('pageviews').innerHTML = '<span class="spinner"></span>';
+    document.getElementById('avgSessionDuration').innerHTML = '<span class="spinner"></span>';
+    document.getElementById('uniqueScreens').innerHTML = '<span class="spinner"></span>';
+    document.getElementById('topSource').innerHTML = '<span class="spinner"></span>';
     document.getElementById('eventsTable').innerHTML = '<div class="spinner-container"><span class="spinner"></span></div>';
 
     try {
@@ -139,6 +144,15 @@ async function loadData() {
         document.getElementById('totalEvents').textContent = data.events.length;
         document.getElementById('pageviews').textContent = data.events.filter(e => e.event_type === 'pageview').length;
         document.getElementById('uniqueScreens').textContent = new Set(data.events.map(e => e.screen)).size;
+
+        // Session duration analysis
+        const sessionEnds = data.events.filter(e => e.event_type === 'session_end' && parseInt(e.session_duration) > 0);
+        const avgDuration = sessionEnds.length > 0 
+            ? Math.floor(sessionEnds.reduce((sum, e) => sum + parseInt(e.session_duration), 0) / sessionEnds.length)
+            : 0;
+        const minutes = Math.floor(avgDuration / 60);
+        const seconds = avgDuration % 60;
+        document.getElementById('avgSessionDuration').textContent = `${minutes}m ${seconds}s`;
 
         // Attribution analysis
         const sources = {};
@@ -167,30 +181,32 @@ async function loadData() {
             const totalPages = Math.ceil(sorted.length / perPage);
             
             const table = `
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Time</th>
-                            <th>Event Type</th>
-                            <th>Path</th>
-                            <th>Source</th>
-                            <th>Campaign</th>
-                            <th>Screen</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${page.map(e => `
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
                             <tr>
-                                <td>${new Date(parseInt(e.sk)).toLocaleString()}</td>
-                                <td>${e.event_type}</td>
-                                <td>${e.path}</td>
-                                <td>${e.utm_source ? `${e.utm_source}/${e.utm_medium}` : '-'}</td>
-                                <td>${e.utm_campaign || '-'}</td>
-                                <td>${e.screen}</td>
+                                <th>Time</th>
+                                <th>Event Type</th>
+                                <th>Path</th>
+                                <th>Source</th>
+                                <th>Campaign</th>
+                                <th>Screen</th>
                             </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            ${page.map(e => `
+                                <tr>
+                                    <td>${new Date(parseInt(e.sk)).toLocaleString()}</td>
+                                    <td>${e.event_type}</td>
+                                    <td>${e.path}</td>
+                                    <td>${e.utm_source ? `${e.utm_source}/${e.utm_medium}` : '-'}</td>
+                                    <td>${e.utm_campaign || '-'}</td>
+                                    <td>${e.screen}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
                 <div class="pagination">
                     <button onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>Previous</button>
                     <span>Page ${currentPage} of ${totalPages}</span>

@@ -125,3 +125,10 @@ button.loading::after {
 .links a:hover {
     text-decoration: underline;
 }
+
+@media (max-width: 768px) {
+    .container { padding: 15px; }
+    .form-box { padding: 25px; }
+    h1 { font-size: 22px; margin-bottom: 20px; }
+    input, button { padding: 10px; font-size: 13px; }
+}

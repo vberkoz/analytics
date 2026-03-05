@@ -5,6 +5,7 @@
     margin-bottom: 20px;
     display: flex;
     gap: 15px;
+    flex-wrap: wrap;
 }
 .filters input, .filters button {
     padding: 10px 15px;
@@ -12,6 +13,7 @@
     border-radius: 4px;
     font-size: 14px;
     height: 40px;
+    min-width: 0;
 }
 .filters button {
     background: #667eea;
@@ -41,11 +43,12 @@
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 .events h2 { margin-bottom: 15px; color: #333; }
-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+table { width: 100%; border-collapse: collapse; min-width: 800px; }
+th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; white-space: nowrap; }
 th { background: #f9f9f9; font-weight: 600; color: #666; font-size: 14px; }
 td { font-size: 14px; color: #333; }
-.pagination { display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 20px; }
+.pagination { display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 20px; flex-wrap: wrap; }
 .pagination button { padding: 8px 16px; border: 1px solid #ddd; border-radius: 4px; background: white; cursor: pointer; font-size: 14px; }
 .pagination button:hover:not(:disabled) { background: #f5f5f5; }
 .pagination button:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -55,3 +58,12 @@ td { font-size: 14px; color: #333; }
 .spinner { display: inline-block; width: 20px; height: 20px; border: 3px solid #f3f3f3; border-top: 3px solid #667eea; border-radius: 50%; animation: spin 1s linear infinite; }
 .spinner-container { text-align: center; padding: 40px; }
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+@media (max-width: 768px) {
+    .stats { grid-template-columns: 1fr; }
+    .filters { flex-direction: column; }
+    .filters input, .filters button { width: 100%; }
+    .stat .value { font-size: 20px; }
+    table { min-width: 500px; }
+    th, td { padding: 8px; font-size: 12px; }
+}

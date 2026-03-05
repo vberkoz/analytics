@@ -8,6 +8,7 @@
   const JOURNEY_KEY = '_aq_journey';
   const ATTRIBUTION_KEY = '_aq_attr';
   const SESSION_TIMEOUT = 30 * 60 * 1000;
+  const SESSION_START_KEY = '_aq_start';
 
   function getSessionId() {
     const stored = sessionStorage.getItem(SESSION_KEY);
@@ -19,6 +20,7 @@
     }
     const newId = Date.now() + '-' + Math.random().toString(36).substr(2, 9);
     sessionStorage.setItem(SESSION_KEY, JSON.stringify({ id: newId, lastActive: Date.now() }));
+    sessionStorage.setItem(SESSION_START_KEY, Date.now());
     sessionStorage.removeItem(JOURNEY_KEY);
     return newId;
   }
@@ -95,6 +97,8 @@
   setInterval(updateSession, 60000);
   window.addEventListener('beforeunload', () => {
     const journey = getJourney();
-    track('session_end', { pages_visited: journey.length });
+    const startTime = parseInt(sessionStorage.getItem(SESSION_START_KEY) || Date.now());
+    const duration = Math.floor((Date.now() - startTime) / 1000);
+    track('session_end', { pages_visited: journey.length, session_duration: duration });
   });
 })();
