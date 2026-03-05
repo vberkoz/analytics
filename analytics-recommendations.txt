@@ -142,3 +142,69 @@ PHASE 4 (Month 3+):
 - Advanced UX metrics
 - Cohort analysis
 - Predictive analytics
+
+================================================================================
+DASHBOARD STRATEGY BY PROJECT TYPE
+================================================================================
+
+APPROACH: Start with universal dashboard, add type-specific views later
+
+PHASE 1 - UNIVERSAL DASHBOARD (MVP):
+- Single dashboard showing all common metrics
+- Works for all project types
+- Faster to build and maintain
+- Users can ignore irrelevant metrics
+
+PHASE 2 - PROJECT TYPE SELECTION:
+When creating project, let users choose:
+- landing_page
+- multi_page_website
+- web_app
+
+Then customize dashboard layout/emphasis:
+
+LANDING PAGE DASHBOARD:
+  Priority widgets:
+  - Conversions, Bounce Rate, Avg Time on Page
+  - CTA Clicks Chart
+  - Form Submissions Funnel
+  - Traffic Sources (UTM)
+  - Scroll Depth Heatmap
+
+MULTI-PAGE WEBSITE DASHBOARD:
+  Priority widgets:
+  - Total Sessions, Pages/Session, Return Rate
+  - Top Pages Table
+  - User Journey Flow
+  - Traffic Sources
+  - Exit Pages
+
+WEB APP DASHBOARD:
+  Priority widgets:
+  - Active Users, Session Duration, Error Rate
+  - Feature Usage Chart
+  - Retention Cohorts
+  - User Actions Timeline
+  - Performance Metrics
+
+IMPLEMENTATION APPROACH:
+- Option A (Recommended): Same data, different views
+  * Store all events the same way
+  * Dashboard queries/displays based on project type
+  * Easy to switch project type later
+  * Minimal backend changes
+
+- Option B: Different tracking scripts
+  * More complex, harder to maintain
+  * Only if data models are fundamentally different
+
+BENEFITS:
+- Better UX - Users see relevant metrics first
+- Clearer insights - No confusion about what matters
+- Guided setup - Suggest tracking code based on type
+- Better defaults - Pre-configure goals/events
+
+WHEN TO BUILD:
+- Not for MVP - Start with universal dashboard
+- After 5-10 projects - When you see usage patterns
+- When users ask - "Why am I seeing X metric?"

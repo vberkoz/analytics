@@ -76,6 +76,8 @@ Resources:
             QueryString: false
             Cookies:
               Forward: none
+            Headers:
+              - CloudFront-Viewer-Country
           Compress: true
 
   DnsRecord:

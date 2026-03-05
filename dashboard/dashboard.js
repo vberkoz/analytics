@@ -132,6 +132,7 @@ async function loadData() {
     document.getElementById('pagesPerSession').innerHTML = '<span class="spinner"></span>';
     document.getElementById('eventsTable').innerHTML = '<div class="spinner-container"><span class="spinner"></span></div>';
     document.getElementById('exitPagesTable').innerHTML = '<div class="spinner-container"><span class="spinner"></span></div>';
+    document.getElementById('countriesTable').innerHTML = '<div class="spinner-container"><span class="spinner"></span></div>';
 
     try {
         const token = localStorage.getItem('idToken');
@@ -230,6 +231,62 @@ async function loadData() {
             document.getElementById('exitPagesTable').innerHTML = exitTable;
         } else {
             document.getElementById('exitPagesTable').innerHTML = '<div class="empty-state">No exit data available.</div>';
+        }
+
+        // Country analysis
+        const countries = {};
+        data.events.forEach(e => {
+            const country = e.country || 'XX';
+            countries[country] = (countries[country] || 0) + 1;
+        });
+        
+        const countryData = Object.entries(countries)
+            .map(([code, count]) => ({
+                code,
+                count,
+                percentage: ((count / data.events.length) * 100).toFixed(1)
+            }))
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 10);
+        
+        const countryNames = {
+            'US': '🇺🇸 United States', 'GB': '🇬🇧 United Kingdom', 'DE': '🇩🇪 Germany',
+            'FR': '🇫🇷 France', 'CA': '🇨🇦 Canada', 'AU': '🇦🇺 Australia',
+            'JP': '🇯🇵 Japan', 'CN': '🇨🇳 China', 'IN': '🇮🇳 India',
+            'BR': '🇧🇷 Brazil', 'MX': '🇲🇽 Mexico', 'ES': '🇪🇸 Spain',
+            'IT': '🇮🇹 Italy', 'NL': '🇳🇱 Netherlands', 'SE': '🇸🇪 Sweden',
+            'PL': '🇵🇱 Poland', 'BE': '🇧🇪 Belgium', 'CH': '🇨🇭 Switzerland',
+            'AT': '🇦🇹 Austria', 'NO': '🇳🇴 Norway', 'DK': '🇩🇰 Denmark',
+            'FI': '🇫🇮 Finland', 'IE': '🇮🇪 Ireland', 'PT': '🇵🇹 Portugal',
+            'XX': '🌍 Unknown'
+        };
+        
+        if (countryData.length > 0) {
+            const countryTable = `
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Country</th>
+                                <th>Events</th>
+                                <th>Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${countryData.map(c => `
+                                <tr>
+                                    <td>${countryNames[c.code] || `🌍 ${c.code}`}</td>
+                                    <td>${c.count}</td>
+                                    <td>${c.percentage}%</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            document.getElementById('countriesTable').innerHTML = countryTable;
+        } else {
+            document.getElementById('countriesTable').innerHTML = '<div class="empty-state">No country data available.</div>';
         }
 
         if (data.events.length === 0) {

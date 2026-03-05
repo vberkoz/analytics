@@ -11,6 +11,7 @@ export const handler = async (event) => {
   };
 
   const body = JSON.parse(event.body);
+  const country = event.headers?.['CloudFront-Viewer-Country'] || 'XX';
   const date = new Date(body.timestamp).toISOString().split('T')[0];
   const PK = `PROJECT#${body.project_id}`;
   const SK = `EVENT#${date}#${body.timestamp}`;
@@ -37,6 +38,7 @@ export const handler = async (event) => {
       utm_term: { S: body.utm_term || '' },
       utm_content: { S: body.utm_content || '' },
       landing_page: { S: body.landing_page || '' },
+      country: { S: country },
     },
   }));
 
