@@ -131,6 +131,7 @@ async function loadData() {
     document.getElementById('topSource').innerHTML = '<span class="spinner"></span>';
     document.getElementById('pagesPerSession').innerHTML = '<span class="spinner"></span>';
     document.getElementById('eventsTable').innerHTML = '<div class="spinner-container"><span class="spinner"></span></div>';
+    document.getElementById('exitPagesTable').innerHTML = '<div class="spinner-container"><span class="spinner"></span></div>';
 
     try {
         const token = localStorage.getItem('idToken');
@@ -178,6 +179,58 @@ async function loadData() {
             ? (sessions.reduce((sum, count) => sum + count, 0) / sessions.length).toFixed(1)
             : '0.0';
         document.getElementById('pagesPerSession').textContent = avgPages;
+
+        // Exit page analysis
+        const exitPages = {};
+        const pageViews = {};
+        data.events.forEach(e => {
+            if (e.event_type === 'pageview') {
+                pageViews[e.path] = (pageViews[e.path] || 0) + 1;
+            }
+            if (e.event_type === 'session_end') {
+                exitPages[e.path] = (exitPages[e.path] || 0) + 1;
+            }
+        });
+        
+        const exitData = Object.entries(exitPages)
+            .map(([path, exits]) => ({
+                path,
+                exits,
+                views: pageViews[path] || exits,
+                rate: ((exits / (pageViews[path] || exits)) * 100).toFixed(1)
+            }))
+            .sort((a, b) => b.exits - a.exits)
+            .slice(0, 10);
+        
+        if (exitData.length > 0) {
+            const exitTable = `
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Page</th>
+                                <th>Exits</th>
+                                <th>Pageviews</th>
+                                <th>Exit Rate</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${exitData.map(e => `
+                                <tr>
+                                    <td>${e.path}</td>
+                                    <td>${e.exits}</td>
+                                    <td>${e.views}</td>
+                                    <td>${e.rate}%</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            document.getElementById('exitPagesTable').innerHTML = exitTable;
+        } else {
+            document.getElementById('exitPagesTable').innerHTML = '<div class="empty-state">No exit data available.</div>';
+        }
 
         if (data.events.length === 0) {
             document.getElementById('eventsTable').innerHTML = '<div class="empty-state">No events found for this date range.</div>';
