@@ -79,6 +79,8 @@ export const handler = async (event) => {
         utm_content: item.utm_content?.S || '',
         landing_page: item.landing_page?.S || '',
         country: item.country?.S || 'XX',
+        search_query: item.search_query?.S || '',
+        search_results_count: item.search_results_count?.N || '0',
       });
     }
   }

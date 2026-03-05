@@ -94,6 +94,33 @@
   addToJourney(window.location.pathname);
   track('pageview');
   
+  // Auto-detect search from URL parameters
+  const urlParams = new URLSearchParams(window.location.search);
+  const searchQuery = urlParams.get('q') || urlParams.get('search') || urlParams.get('query') || urlParams.get('s');
+  if (searchQuery) {
+    const resultsCount = document.querySelectorAll('.search-result, [class*="search-result"], [class*="result-item"]').length;
+    track('search', { search_query: searchQuery.slice(0, 100).toLowerCase().trim(), search_results_count: resultsCount });
+  }
+
+  // Auto-detect search form submissions
+  setTimeout(() => {
+    document.querySelectorAll('form[role="search"], .search-form, form[class*="search"]').forEach(form => {
+      form.addEventListener('submit', (e) => {
+        const input = form.querySelector('input[type="search"], input[name*="search"], input[name="q"], input[name="query"]');
+        if (input && input.value) {
+          track('search', { search_query: input.value.slice(0, 100).toLowerCase().trim() });
+        }
+      });
+    });
+  }, 1000);
+
+  // Expose manual tracking API
+  window.trackSearch = function(query, resultsCount = 0) {
+    if (query) {
+      track('search', { search_query: query.slice(0, 100).toLowerCase().trim(), search_results_count: resultsCount });
+    }
+  };
+  
   setInterval(updateSession, 60000);
   window.addEventListener('beforeunload', () => {
     const journey = getJourney();

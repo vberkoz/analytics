@@ -133,6 +133,7 @@ async function loadData() {
     document.getElementById('eventsTable').innerHTML = '<div class="spinner-container"><span class="spinner"></span></div>';
     document.getElementById('exitPagesTable').innerHTML = '<div class="spinner-container"><span class="spinner"></span></div>';
     document.getElementById('countriesTable').innerHTML = '<div class="spinner-container"><span class="spinner"></span></div>';
+    document.getElementById('searchQueriesTable').innerHTML = '<div class="spinner-container"><span class="spinner"></span></div>';
 
     try {
         const token = localStorage.getItem('idToken');
@@ -287,6 +288,45 @@ async function loadData() {
             document.getElementById('countriesTable').innerHTML = countryTable;
         } else {
             document.getElementById('countriesTable').innerHTML = '<div class="empty-state">No country data available.</div>';
+        }
+
+        // Search queries analysis
+        const searches = {};
+        data.events.forEach(e => {
+            if (e.event_type === 'search' && e.search_query) {
+                searches[e.search_query] = (searches[e.search_query] || 0) + 1;
+            }
+        });
+        
+        const searchData = Object.entries(searches)
+            .map(([query, count]) => ({ query, count }))
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 20);
+        
+        if (searchData.length > 0) {
+            const searchTable = `
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Search Query</th>
+                                <th>Count</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${searchData.map(s => `
+                                <tr>
+                                    <td>"${s.query}"</td>
+                                    <td>${s.count}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            document.getElementById('searchQueriesTable').innerHTML = searchTable;
+        } else {
+            document.getElementById('searchQueriesTable').innerHTML = '<div class="empty-state">No search queries yet.</div>';
         }
 
         if (data.events.length === 0) {

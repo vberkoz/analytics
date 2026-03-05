@@ -39,6 +39,8 @@ export const handler = async (event) => {
       utm_content: { S: body.utm_content || '' },
       landing_page: { S: body.landing_page || '' },
       country: { S: country },
+      search_query: { S: body.search_query || '' },
+      search_results_count: { N: String(body.search_results_count || 0) },
     },
   }));
 
