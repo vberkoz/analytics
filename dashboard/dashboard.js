@@ -129,6 +129,7 @@ async function loadData() {
     document.getElementById('avgSessionDuration').innerHTML = '<span class="spinner"></span>';
     document.getElementById('uniqueScreens').innerHTML = '<span class="spinner"></span>';
     document.getElementById('topSource').innerHTML = '<span class="spinner"></span>';
+    document.getElementById('pagesPerSession').innerHTML = '<span class="spinner"></span>';
     document.getElementById('eventsTable').innerHTML = '<div class="spinner-container"><span class="spinner"></span></div>';
 
     try {
@@ -164,6 +165,19 @@ async function loadData() {
         });
         const topSource = Object.entries(sources).sort((a, b) => b[1] - a[1])[0];
         document.getElementById('topSource').textContent = topSource ? topSource[0] : 'N/A';
+
+        // Pages per session analysis
+        const sessionPages = {};
+        data.events.forEach(e => {
+            if (e.event_type === 'pageview' && e.session_id) {
+                sessionPages[e.session_id] = (sessionPages[e.session_id] || 0) + 1;
+            }
+        });
+        const sessions = Object.values(sessionPages);
+        const avgPages = sessions.length > 0 
+            ? (sessions.reduce((sum, count) => sum + count, 0) / sessions.length).toFixed(1)
+            : '0.0';
+        document.getElementById('pagesPerSession').textContent = avgPages;
 
         if (data.events.length === 0) {
             document.getElementById('eventsTable').innerHTML = '<div class="empty-state">No events found for this date range.</div>';
