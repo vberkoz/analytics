@@ -30,6 +30,12 @@ export const handler = async (event) => {
       journey_depth: { N: String(body.journey_depth || 0) },
       prev_path: { S: body.prev_path || '' },
       pages_visited: { N: String(body.pages_visited || 0) },
+      utm_source: { S: body.utm_source || '' },
+      utm_medium: { S: body.utm_medium || '' },
+      utm_campaign: { S: body.utm_campaign || '' },
+      utm_term: { S: body.utm_term || '' },
+      utm_content: { S: body.utm_content || '' },
+      landing_page: { S: body.landing_page || '' },
     },
   }));
 

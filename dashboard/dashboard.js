@@ -140,6 +140,17 @@ async function loadData() {
         document.getElementById('pageviews').textContent = data.events.filter(e => e.event_type === 'pageview').length;
         document.getElementById('uniqueScreens').textContent = new Set(data.events.map(e => e.screen)).size;
 
+        // Attribution analysis
+        const sources = {};
+        data.events.forEach(e => {
+            if (e.utm_source) {
+                const key = `${e.utm_source}/${e.utm_medium}`;
+                sources[key] = (sources[key] || 0) + 1;
+            }
+        });
+        const topSource = Object.entries(sources).sort((a, b) => b[1] - a[1])[0];
+        document.getElementById('topSource').textContent = topSource ? topSource[0] : 'N/A';
+
         if (data.events.length === 0) {
             document.getElementById('eventsTable').innerHTML = '<div class="empty-state">No events found for this date range.</div>';
             return;
@@ -162,7 +173,8 @@ async function loadData() {
                             <th>Time</th>
                             <th>Event Type</th>
                             <th>Path</th>
-                            <th>Referrer</th>
+                            <th>Source</th>
+                            <th>Campaign</th>
                             <th>Screen</th>
                         </tr>
                     </thead>
@@ -172,7 +184,8 @@ async function loadData() {
                                 <td>${new Date(parseInt(e.sk)).toLocaleString()}</td>
                                 <td>${e.event_type}</td>
                                 <td>${e.path}</td>
-                                <td>${e.referrer || '-'}</td>
+                                <td>${e.utm_source ? `${e.utm_source}/${e.utm_medium}` : '-'}</td>
+                                <td>${e.utm_campaign || '-'}</td>
                                 <td>${e.screen}</td>
                             </tr>
                         `).join('')}

@@ -70,6 +70,13 @@ export const handler = async (event) => {
         path: item.path.S,
         referrer: item.referrer?.S || '',
         screen: item.screen.S,
+        session_id: item.session_id?.S || '',
+        utm_source: item.utm_source?.S || '',
+        utm_medium: item.utm_medium?.S || '',
+        utm_campaign: item.utm_campaign?.S || '',
+        utm_term: item.utm_term?.S || '',
+        utm_content: item.utm_content?.S || '',
+        landing_page: item.landing_page?.S || '',
       });
     }
   }

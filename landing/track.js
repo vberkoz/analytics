@@ -6,6 +6,7 @@
 
   const SESSION_KEY = '_aq_sid';
   const JOURNEY_KEY = '_aq_journey';
+  const ATTRIBUTION_KEY = '_aq_attr';
   const SESSION_TIMEOUT = 30 * 60 * 1000;
 
   function getSessionId() {
@@ -31,6 +32,24 @@
     }
   }
 
+  function getAttribution() {
+    let attr = sessionStorage.getItem(ATTRIBUTION_KEY);
+    if (attr) return JSON.parse(attr);
+    
+    const params = new URLSearchParams(window.location.search);
+    attr = {
+      source: params.get('utm_source') || (document.referrer ? new URL(document.referrer).hostname : 'direct'),
+      medium: params.get('utm_medium') || (document.referrer ? 'referral' : 'none'),
+      campaign: params.get('utm_campaign') || null,
+      term: params.get('utm_term') || null,
+      content: params.get('utm_content') || null,
+      referrer: document.referrer || null,
+      landing_page: window.location.pathname + window.location.search
+    };
+    sessionStorage.setItem(ATTRIBUTION_KEY, JSON.stringify(attr));
+    return attr;
+  }
+
   function getJourney() {
     const journey = sessionStorage.getItem(JOURNEY_KEY);
     return journey ? JSON.parse(journey) : [];
@@ -46,6 +65,7 @@
   function track(eventType, data = {}) {
     const sessionId = getSessionId();
     const journey = getJourney();
+    const attribution = getAttribution();
     const event = {
       project_id: PROJECT_ID,
       source_type: SOURCE_TYPE,
@@ -57,6 +77,12 @@
       screen: window.screen.width + 'x' + window.screen.height,
       journey_depth: journey.length,
       prev_path: journey.length > 0 ? journey[journey.length - 1].path : null,
+      utm_source: attribution.source,
+      utm_medium: attribution.medium,
+      utm_campaign: attribution.campaign,
+      utm_term: attribution.term,
+      utm_content: attribution.content,
+      landing_page: attribution.landing_page,
       ...data
     };
     navigator.sendBeacon(API_URL, JSON.stringify(event));
