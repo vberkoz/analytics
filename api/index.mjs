@@ -28,6 +28,8 @@ export const handler = async (event) => {
       referrer: { S: body.referrer || '' },
       screen: { S: body.screen },
       session_id: { S: body.session_id || '' },
+      visitor_id: { S: body.visitor_id || '' },
+      is_returning: { BOOL: body.is_returning || false },
       journey_depth: { N: String(body.journey_depth || 0) },
       prev_path: { S: body.prev_path || '' },
       pages_visited: { N: String(body.pages_visited || 0) },

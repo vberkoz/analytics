@@ -130,6 +130,7 @@ async function loadData() {
     document.getElementById('uniqueScreens').innerHTML = '<span class="spinner"></span>';
     document.getElementById('topSource').innerHTML = '<span class="spinner"></span>';
     document.getElementById('pagesPerSession').innerHTML = '<span class="spinner"></span>';
+    document.getElementById('returnRate').innerHTML = '<span class="spinner"></span>';
     document.getElementById('eventsTable').innerHTML = '<div class="spinner-container"><span class="spinner"></span></div>';
     document.getElementById('exitPagesTable').innerHTML = '<div class="spinner-container"><span class="spinner"></span></div>';
     document.getElementById('countriesTable').innerHTML = '<div class="spinner-container"><span class="spinner"></span></div>';
@@ -181,6 +182,21 @@ async function loadData() {
             ? (sessions.reduce((sum, count) => sum + count, 0) / sessions.length).toFixed(1)
             : '0.0';
         document.getElementById('pagesPerSession').textContent = avgPages;
+
+        // Return visitor rate
+        const visitors = {};
+        data.events.forEach(e => {
+            if (e.event_type === 'pageview' && e.visitor_id) {
+                if (!visitors[e.visitor_id]) {
+                    visitors[e.visitor_id] = { sessions: new Set(), isReturning: e.is_returning };
+                }
+                visitors[e.visitor_id].sessions.add(e.session_id);
+            }
+        });
+        const visitorList = Object.values(visitors);
+        const returningCount = visitorList.filter(v => v.sessions.size > 1 || v.isReturning).length;
+        const returnRate = visitorList.length > 0 ? ((returningCount / visitorList.length) * 100).toFixed(1) : '0.0';
+        document.getElementById('returnRate').textContent = `${returnRate}%`;
 
         // Exit page analysis
         const exitPages = {};

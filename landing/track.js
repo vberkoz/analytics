@@ -9,6 +9,24 @@
   const ATTRIBUTION_KEY = '_aq_attr';
   const SESSION_TIMEOUT = 30 * 60 * 1000;
   const SESSION_START_KEY = '_aq_start';
+  const VISITOR_KEY = '_aq_vid';
+  const VISITOR_EXPIRY = 365 * 24 * 60 * 60 * 1000;
+
+  function getVisitorId() {
+    let stored = localStorage.getItem(VISITOR_KEY);
+    if (stored) {
+      const { id, created } = JSON.parse(stored);
+      if (Date.now() - created < VISITOR_EXPIRY) return id;
+    }
+    const newId = Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem(VISITOR_KEY, JSON.stringify({ id: newId, created: Date.now() }));
+    return newId;
+  }
+
+  function isReturningVisitor() {
+    const sessions = sessionStorage.getItem('_aq_session_count');
+    return sessions && parseInt(sessions) > 0;
+  }
 
   function getSessionId() {
     const stored = sessionStorage.getItem(SESSION_KEY);
@@ -22,6 +40,8 @@
     sessionStorage.setItem(SESSION_KEY, JSON.stringify({ id: newId, lastActive: Date.now() }));
     sessionStorage.setItem(SESSION_START_KEY, Date.now());
     sessionStorage.removeItem(JOURNEY_KEY);
+    const count = parseInt(sessionStorage.getItem('_aq_session_count') || '0');
+    sessionStorage.setItem('_aq_session_count', (count + 1).toString());
     return newId;
   }
 
@@ -66,6 +86,7 @@
 
   function track(eventType, data = {}) {
     const sessionId = getSessionId();
+    const visitorId = getVisitorId();
     const journey = getJourney();
     const attribution = getAttribution();
     const event = {
@@ -74,6 +95,8 @@
       event_type: eventType,
       timestamp: Date.now(),
       session_id: sessionId,
+      visitor_id: visitorId,
+      is_returning: isReturningVisitor(),
       path: window.location.pathname,
       referrer: document.referrer || null,
       screen: window.screen.width + 'x' + window.screen.height,
