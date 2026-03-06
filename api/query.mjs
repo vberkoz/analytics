@@ -83,6 +83,7 @@ export const handler = async (event) => {
         country: item.country?.S || 'XX',
         search_query: item.search_query?.S || '',
         search_results_count: item.search_results_count?.N || '0',
+        is_entry: item.is_entry?.BOOL || false,
       });
     }
   }

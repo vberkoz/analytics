@@ -114,8 +114,10 @@
   }
 
   const sessionId = getSessionId();
+  const isEntryPage = !sessionStorage.getItem('_aq_entry_tracked');
+  if (isEntryPage) sessionStorage.setItem('_aq_entry_tracked', '1');
   addToJourney(window.location.pathname);
-  track('pageview');
+  track('pageview', { is_entry: isEntryPage });
   
   // Auto-detect search from URL parameters
   const urlParams = new URLSearchParams(window.location.search);

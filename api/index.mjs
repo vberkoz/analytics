@@ -43,6 +43,7 @@ export const handler = async (event) => {
       country: { S: country },
       search_query: { S: body.search_query || '' },
       search_results_count: { N: String(body.search_results_count || 0) },
+      is_entry: { BOOL: body.is_entry || false },
     },
   }));
 

@@ -132,6 +132,10 @@ async function loadData() {
     document.getElementById('pagesPerSession').innerHTML = '<span class="spinner"></span>';
     document.getElementById('returnRate').innerHTML = '<span class="spinner"></span>';
     document.getElementById('eventsTable').innerHTML = '<div class="spinner-container"><span class="spinner"></span></div>';
+    document.getElementById('eventsChart').innerHTML = '<div class="spinner-container"><span class="spinner"></span></div>';
+    document.getElementById('trafficSourcesChart').innerHTML = '<div class="spinner-container"><span class="spinner"></span></div>';
+    document.getElementById('sessionDurationChart').innerHTML = '<div class="spinner-container"><span class="spinner"></span></div>';
+    document.getElementById('entryPagesTable').innerHTML = '<div class="spinner-container"><span class="spinner"></span></div>';
     document.getElementById('exitPagesTable').innerHTML = '<div class="spinner-container"><span class="spinner"></span></div>';
     document.getElementById('countriesTable').innerHTML = '<div class="spinner-container"><span class="spinner"></span></div>';
     document.getElementById('searchQueriesTable').innerHTML = '<div class="spinner-container"><span class="spinner"></span></div>';
@@ -197,6 +201,242 @@ async function loadData() {
         const returningCount = visitorList.filter(v => v.sessions.size > 1 || v.isReturning).length;
         const returnRate = visitorList.length > 0 ? ((returningCount / visitorList.length) * 100).toFixed(1) : '0.0';
         document.getElementById('returnRate').textContent = `${returnRate}%`;
+
+        // Events over time chart
+        const chartStartDate = new Date(document.getElementById('startDate').value);
+        const chartEndDate = new Date(document.getElementById('endDate').value);
+        const eventsByDate = {};
+        
+        // Initialize all dates in range with 0
+        for (let d = new Date(chartStartDate); d <= chartEndDate; d.setDate(d.getDate() + 1)) {
+            const dateStr = d.toISOString().split('T')[0];
+            eventsByDate[dateStr] = 0;
+        }
+        
+        // Fill in actual event counts
+        data.events.forEach(e => {
+            const date = new Date(parseInt(e.sk)).toISOString().split('T')[0];
+            if (eventsByDate.hasOwnProperty(date)) {
+                eventsByDate[date]++;
+            }
+        });
+        
+        const dates = Object.keys(eventsByDate).sort();
+        const counts = dates.map(d => eventsByDate[d]);
+        const maxCount = Math.max(...counts, 1);
+        
+        if (dates.length > 0) {
+            const width = 800;
+            const height = 200;
+            const padding = 40;
+            const chartWidth = width - padding * 2;
+            const chartHeight = height - padding * 2;
+            
+            const points = dates.map((date, i) => {
+                const x = padding + (i / (dates.length - 1 || 1)) * chartWidth;
+                const y = padding + chartHeight - (counts[i] / maxCount) * chartHeight;
+                return `${x},${y}`;
+            }).join(' ');
+            
+            const chart = `
+                <svg width="100%" height="${height}" viewBox="0 0 ${width} ${height}" style="max-width: 100%;">
+                    <polyline points="${points}" fill="none" stroke="#4f46e5" stroke-width="2"/>
+                    ${dates.map((date, i) => {
+                        const x = padding + (i / (dates.length - 1 || 1)) * chartWidth;
+                        const y = padding + chartHeight - (counts[i] / maxCount) * chartHeight;
+                        return `<circle cx="${x}" cy="${y}" r="4" fill="#4f46e5"/>`;
+                    }).join('')}
+                    <line x1="${padding}" y1="${padding}" x2="${padding}" y2="${height - padding}" stroke="#ddd" stroke-width="1"/>
+                    <line x1="${padding}" y1="${height - padding}" x2="${width - padding}" y2="${height - padding}" stroke="#ddd" stroke-width="1"/>
+                    ${dates.map((date, i) => {
+                        if (dates.length <= 7 || i % Math.ceil(dates.length / 7) === 0) {
+                            const x = padding + (i / (dates.length - 1 || 1)) * chartWidth;
+                            const [y, m, d] = date.split('-');
+                            return `<text x="${x}" y="${height - 10}" text-anchor="middle" font-size="12" fill="#666">${d}.${m}.${y}</text>`;
+                        }
+                        return '';
+                    }).join('')}
+                    <text x="10" y="${padding}" font-size="12" fill="#666">${maxCount}</text>
+                    <text x="10" y="${height - padding}" font-size="12" fill="#666">0</text>
+                </svg>
+            `;
+            document.getElementById('eventsChart').innerHTML = chart;
+        } else {
+            document.getElementById('eventsChart').innerHTML = '<div class="empty-state">No data available.</div>';
+        }
+
+        // Traffic sources donut chart
+        const utmSources = {};
+        data.events.forEach(e => {
+            if (e.utm_source) {
+                utmSources[e.utm_source] = (utmSources[e.utm_source] || 0) + 1;
+            }
+        });
+        
+        const sourceData = Object.entries(utmSources)
+            .map(([source, count]) => ({ source, count }))
+            .sort((a, b) => b.count - a.count);
+        
+        if (sourceData.length > 0) {
+            const total = sourceData.reduce((sum, s) => sum + s.count, 0);
+            const colors = ['#4f46e5', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6'];
+            
+            const size = 300;
+            const cx = size / 2;
+            const cy = size / 2;
+            const radius = 100;
+            const innerRadius = 60;
+            
+            let currentAngle = -90;
+            const paths = sourceData.map((s, i) => {
+                const angle = (s.count / total) * 360;
+                const startAngle = currentAngle * Math.PI / 180;
+                const endAngle = (currentAngle + angle) * Math.PI / 180;
+                
+                const x1 = cx + radius * Math.cos(startAngle);
+                const y1 = cy + radius * Math.sin(startAngle);
+                const x2 = cx + radius * Math.cos(endAngle);
+                const y2 = cy + radius * Math.sin(endAngle);
+                const x3 = cx + innerRadius * Math.cos(endAngle);
+                const y3 = cy + innerRadius * Math.sin(endAngle);
+                const x4 = cx + innerRadius * Math.cos(startAngle);
+                const y4 = cy + innerRadius * Math.sin(startAngle);
+                
+                const largeArc = angle > 180 ? 1 : 0;
+                const path = `M ${x1} ${y1} A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2} L ${x3} ${y3} A ${innerRadius} ${innerRadius} 0 ${largeArc} 0 ${x4} ${y4} Z`;
+                
+                currentAngle += angle;
+                return `<path d="${path}" fill="${colors[i % colors.length]}" stroke="white" stroke-width="2"/>`;
+            }).join('');
+            
+            const legend = sourceData.map((s, i) => {
+                const pct = ((s.count / total) * 100).toFixed(1);
+                return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><div style="width:16px;height:16px;background:${colors[i % colors.length]};border-radius:2px;"></div><span style="font-size:14px;color:#333;">${s.source}: ${s.count} (${pct}%)</span></div>`;
+            }).join('');
+            
+            const chart = `
+                <div style="display:flex;align-items:center;justify-content:center;gap:40px;flex-wrap:wrap;">
+                    <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+                        ${paths}
+                    </svg>
+                    <div>${legend}</div>
+                </div>
+            `;
+            document.getElementById('trafficSourcesChart').innerHTML = chart;
+        } else {
+            document.getElementById('trafficSourcesChart').innerHTML = '<div class="empty-state">No traffic source data available.</div>';
+        }
+
+        // Session duration distribution bar chart
+        const durations = data.events
+            .filter(e => e.event_type === 'session_end' && parseInt(e.session_duration) > 0)
+            .map(e => parseInt(e.session_duration));
+        
+        if (durations.length > 0) {
+            const buckets = { '0-30s': 0, '30s-1m': 0, '1-2m': 0, '2-5m': 0, '5-10m': 0, '10m+': 0 };
+            durations.forEach(d => {
+                if (d < 30) buckets['0-30s']++;
+                else if (d < 60) buckets['30s-1m']++;
+                else if (d < 120) buckets['1-2m']++;
+                else if (d < 300) buckets['2-5m']++;
+                else if (d < 600) buckets['5-10m']++;
+                else buckets['10m+']++;
+            });
+            
+            const maxCount = Math.max(...Object.values(buckets));
+            const width = 600;
+            const height = 250;
+            const padding = 40;
+            const barWidth = (width - padding * 2) / Object.keys(buckets).length;
+            
+            const bars = Object.entries(buckets).map(([label, count], i) => {
+                const barHeight = (count / maxCount) * (height - padding * 2);
+                const x = padding + i * barWidth;
+                const y = height - padding - barHeight;
+                return `
+                    <rect x="${x + 5}" y="${y}" width="${barWidth - 10}" height="${barHeight}" fill="#4f46e5"/>
+                    <text x="${x + barWidth / 2}" y="${height - 10}" text-anchor="middle" font-size="12" fill="#666">${label}</text>
+                    <text x="${x + barWidth / 2}" y="${y - 5}" text-anchor="middle" font-size="12" fill="#333">${count}</text>
+                `;
+            }).join('');
+            
+            const chart = `
+                <svg width="100%" height="${height}" viewBox="0 0 ${width} ${height}" style="max-width:100%;">
+                    <line x1="${padding}" y1="${padding}" x2="${padding}" y2="${height - padding}" stroke="#ddd" stroke-width="1"/>
+                    <line x1="${padding}" y1="${height - padding}" x2="${width - padding}" y2="${height - padding}" stroke="#ddd" stroke-width="1"/>
+                    ${bars}
+                </svg>
+            `;
+            document.getElementById('sessionDurationChart').innerHTML = chart;
+        } else {
+            document.getElementById('sessionDurationChart').innerHTML = '<div class="empty-state">No session duration data available.</div>';
+        }
+
+        // Entry page analysis
+        const entryPages = {};
+        const entryBounces = {};
+        const entrySessions = {};
+        const entryNextPages = {};
+        
+        data.events.forEach(e => {
+            if (e.event_type === 'pageview' && e.is_entry) {
+                entryPages[e.path] = (entryPages[e.path] || 0) + 1;
+                if (!entrySessions[e.path]) entrySessions[e.path] = new Set();
+                entrySessions[e.path].add(e.session_id);
+            }
+        });
+        
+        // Calculate bounce rate for entry pages
+        Object.keys(entryPages).forEach(path => {
+            const sessions = Array.from(entrySessions[path]);
+            let bounces = 0;
+            sessions.forEach(sid => {
+                const sessionEvents = data.events.filter(e => e.session_id === sid && e.event_type === 'pageview');
+                if (sessionEvents.length === 1) bounces++;
+            });
+            entryBounces[path] = bounces;
+        });
+        
+        const entryData = Object.entries(entryPages)
+            .map(([path, entries]) => ({
+                path,
+                entries,
+                sessions: entrySessions[path].size,
+                bounces: entryBounces[path],
+                bounceRate: ((entryBounces[path] / entrySessions[path].size) * 100).toFixed(1)
+            }))
+            .sort((a, b) => b.entries - a.entries)
+            .slice(0, 10);
+        
+        if (entryData.length > 0) {
+            const entryTable = `
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Page</th>
+                                <th>Entries</th>
+                                <th>Sessions</th>
+                                <th>Bounce Rate</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${entryData.map(e => `
+                                <tr>
+                                    <td>${e.path}</td>
+                                    <td>${e.entries}</td>
+                                    <td>${e.sessions}</td>
+                                    <td>${e.bounceRate}%</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            document.getElementById('entryPagesTable').innerHTML = entryTable;
+        } else {
+            document.getElementById('entryPagesTable').innerHTML = '<div class="empty-state">No entry page data available.</div>';
+        }
 
         // Exit page analysis
         const exitPages = {};
