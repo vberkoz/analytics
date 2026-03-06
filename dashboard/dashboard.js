@@ -151,6 +151,8 @@ async function loadData() {
     document.getElementById('countriesTable').innerHTML = '<div class="spinner-container"><span class="spinner"></span></div>';
     document.getElementById('searchQueriesTable').innerHTML = '<div class="spinner-container"><span class="spinner"></span></div>';
     document.getElementById('engagingPagesTable').innerHTML = '<div class="spinner-container"><span class="spinner"></span></div>';
+    document.getElementById('newVsReturningChart').innerHTML = '<div class="spinner-container"><span class="spinner"></span></div>';
+    document.getElementById('userGrowthChart').innerHTML = '<div class="spinner-container"><span class="spinner"></span></div>';
 
     try {
         const token = localStorage.getItem('idToken');
@@ -210,8 +212,8 @@ async function loadData() {
             }
         });
         const visitorList = Object.values(visitors);
-        const returningCount = visitorList.filter(v => v.sessions.size > 1 || v.isReturning).length;
-        const returnRate = visitorList.length > 0 ? ((returningCount / visitorList.length) * 100).toFixed(1) : '0.0';
+        const returningVisitorCount = visitorList.filter(v => v.sessions.size > 1 || v.isReturning).length;
+        const returnRate = visitorList.length > 0 ? ((returningVisitorCount / visitorList.length) * 100).toFixed(1) : '0.0';
         document.getElementById('returnRate').textContent = `${returnRate}%`;
 
         // Store data globally for chart updates
@@ -239,6 +241,171 @@ async function loadData() {
         }
 
 
+
+        // New vs Returning Users
+        const newUsers = new Set();
+        const returningUsers = new Set();
+        
+        data.events.forEach(e => {
+            if (e.event_type === 'pageview' && e.visitor_id) {
+                if (e.is_returning) {
+                    returningUsers.add(e.visitor_id);
+                } else {
+                    newUsers.add(e.visitor_id);
+                }
+            }
+        });
+        
+        const newCount = newUsers.size;
+        const returningCount = returningUsers.size;
+        const totalUsers = newCount + returningCount;
+        
+        if (totalUsers > 0) {
+            const newPct = ((newCount / totalUsers) * 100).toFixed(1);
+            const returningPct = ((returningCount / totalUsers) * 100).toFixed(1);
+            
+            const size = 300;
+            const cx = size / 2;
+            const cy = size / 2;
+            const radius = 100;
+            const innerRadius = 60;
+            
+            let paths = '';
+            
+            if (newCount > 0 && returningCount > 0) {
+                const newAngle = (newCount / totalUsers) * 360;
+                const newStart = -90 * Math.PI / 180;
+                const newEnd = (-90 + newAngle) * Math.PI / 180;
+                const retStart = newEnd;
+                const retEnd = (270) * Math.PI / 180;
+                
+                const newX1 = cx + radius * Math.cos(newStart);
+                const newY1 = cy + radius * Math.sin(newStart);
+                const newX2 = cx + radius * Math.cos(newEnd);
+                const newY2 = cy + radius * Math.sin(newEnd);
+                const newX3 = cx + innerRadius * Math.cos(newEnd);
+                const newY3 = cy + innerRadius * Math.sin(newEnd);
+                const newX4 = cx + innerRadius * Math.cos(newStart);
+                const newY4 = cy + innerRadius * Math.sin(newStart);
+                
+                const retX1 = cx + radius * Math.cos(retStart);
+                const retY1 = cy + radius * Math.sin(retStart);
+                const retX2 = cx + radius * Math.cos(retEnd);
+                const retY2 = cy + radius * Math.sin(retEnd);
+                const retX3 = cx + innerRadius * Math.cos(retEnd);
+                const retY3 = cy + innerRadius * Math.sin(retEnd);
+                const retX4 = cx + innerRadius * Math.cos(retStart);
+                const retY4 = cy + innerRadius * Math.sin(retStart);
+                
+                const newLargeArc = newAngle > 180 ? 1 : 0;
+                const retLargeArc = (360 - newAngle) > 180 ? 1 : 0;
+                
+                paths = `<path d="M ${newX1} ${newY1} A ${radius} ${radius} 0 ${newLargeArc} 1 ${newX2} ${newY2} L ${newX3} ${newY3} A ${innerRadius} ${innerRadius} 0 ${newLargeArc} 0 ${newX4} ${newY4} Z" fill="#10b981" stroke="white" stroke-width="2"/><path d="M ${retX1} ${retY1} A ${radius} ${radius} 0 ${retLargeArc} 1 ${retX2} ${retY2} L ${retX3} ${retY3} A ${innerRadius} ${innerRadius} 0 ${retLargeArc} 0 ${retX4} ${retY4} Z" fill="#4f46e5" stroke="white" stroke-width="2"/>`;
+            } else if (newCount > 0) {
+                paths = `<circle cx="${cx}" cy="${cy}" r="${radius}" fill="#10b981" stroke="white" stroke-width="2"/><circle cx="${cx}" cy="${cy}" r="${innerRadius}" fill="white"/>`;
+            } else {
+                paths = `<circle cx="${cx}" cy="${cy}" r="${radius}" fill="#4f46e5" stroke="white" stroke-width="2"/><circle cx="${cx}" cy="${cy}" r="${innerRadius}" fill="white"/>`;
+            }
+            
+            const chart = `
+                <div style="display:flex;align-items:center;justify-content:center;gap:40px;flex-wrap:wrap;">
+                    <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+                        ${paths}
+                    </svg>
+                    <div>
+                        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+                            <div style="width:16px;height:16px;background:#10b981;border-radius:2px;"></div>
+                            <span style="font-size:14px;color:#333;">New: ${newCount} (${newPct}%)</span>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <div style="width:16px;height:16px;background:#4f46e5;border-radius:2px;"></div>
+                            <span style="font-size:14px;color:#333;">Returning: ${returningCount} (${returningPct}%)</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('newVsReturningChart').innerHTML = chart;
+        } else {
+            document.getElementById('newVsReturningChart').innerHTML = '<div class="empty-state">No user data available.</div>';
+        }
+        
+        // User Growth Trend
+        const chartStartDate = new Date(startDate);
+        const chartEndDate = new Date(endDate);
+        const growthByDate = {};
+        
+        for (let d = new Date(chartStartDate); d <= chartEndDate; d.setDate(d.getDate() + 1)) {
+            const dateStr = d.toISOString().split('T')[0];
+            growthByDate[dateStr] = { new: new Set(), returning: new Set() };
+        }
+        
+        data.events.forEach(e => {
+            if (e.event_type === 'pageview' && e.visitor_id) {
+                const date = new Date(parseInt(e.sk)).toISOString().split('T')[0];
+                if (growthByDate[date]) {
+                    if (e.is_returning) {
+                        growthByDate[date].returning.add(e.visitor_id);
+                    } else {
+                        growthByDate[date].new.add(e.visitor_id);
+                    }
+                }
+            }
+        });
+        
+        const dates = Object.keys(growthByDate).sort();
+        const newCounts = dates.map(d => growthByDate[d].new.size);
+        const returningCounts = dates.map(d => growthByDate[d].returning.size);
+        const maxCount = Math.max(...newCounts, ...returningCounts, 1);
+        
+        if (dates.length > 0) {
+            const width = 800;
+            const height = 250;
+            const padding = 40;
+            const chartWidth = width - padding * 2;
+            const chartHeight = height - padding * 2;
+            
+            const newPoints = dates.map((date, i) => {
+                const x = padding + (i / (dates.length - 1 || 1)) * chartWidth;
+                const y = padding + chartHeight - (newCounts[i] / maxCount) * chartHeight;
+                return `${x},${y}`;
+            }).join(' ');
+            
+            const returningPoints = dates.map((date, i) => {
+                const x = padding + (i / (dates.length - 1 || 1)) * chartWidth;
+                const y = padding + chartHeight - (returningCounts[i] / maxCount) * chartHeight;
+                return `${x},${y}`;
+            }).join(' ');
+            
+            const chart = `
+                <svg width="100%" height="${height}" viewBox="0 0 ${width} ${height}" style="max-width:100%;">
+                    <line x1="${padding}" y1="${padding}" x2="${padding}" y2="${height - padding}" stroke="#ddd" stroke-width="1"/>
+                    <line x1="${padding}" y1="${height - padding}" x2="${width - padding}" y2="${height - padding}" stroke="#ddd" stroke-width="1"/>
+                    <polyline points="${newPoints}" fill="none" stroke="#10b981" stroke-width="2"/>
+                    <polyline points="${returningPoints}" fill="none" stroke="#4f46e5" stroke-width="2"/>
+                    ${dates.map((date, i) => {
+                        const x = padding + (i / (dates.length - 1 || 1)) * chartWidth;
+                        const newY = padding + chartHeight - (newCounts[i] / maxCount) * chartHeight;
+                        const retY = padding + chartHeight - (returningCounts[i] / maxCount) * chartHeight;
+                        return `<circle cx="${x}" cy="${newY}" r="3" fill="#10b981"/><circle cx="${x}" cy="${retY}" r="3" fill="#4f46e5"/>`;
+                    }).join('')}
+                    ${dates.map((date, i) => {
+                        if (dates.length <= 7 || i % Math.ceil(dates.length / 7) === 0) {
+                            const x = padding + (i / (dates.length - 1 || 1)) * chartWidth;
+                            const [y, m, d] = date.split('-');
+                            return `<text x="${x}" y="${height - 10}" text-anchor="middle" font-size="12" fill="#666">${d}.${m}.${y}</text>`;
+                        }
+                        return '';
+                    }).join('')}
+                    <text x="10" y="${padding}" font-size="12" fill="#666">${maxCount}</text>
+                    <text x="10" y="${height - padding}" font-size="12" fill="#666">0</text>
+                    <text x="${padding + 20}" y="${padding - 10}" font-size="12" fill="#10b981">● New</text>
+                    <text x="${padding + 90}" y="${padding - 10}" font-size="12" fill="#4f46e5">● Returning</text>
+                </svg>
+            `;
+            document.getElementById('userGrowthChart').innerHTML = chart;
+        } else {
+            document.getElementById('userGrowthChart').innerHTML = '<div class="empty-state">No growth data available.</div>';
+        }
 
         // Traffic sources donut chart
         const utmSources = {};
