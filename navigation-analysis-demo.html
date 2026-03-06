@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Navigation Path Analysis Demo</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 { color: #333; }
+        .section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .feature {
+            margin: 15px 0;
+            padding: 15px;
+            background: #f9f9f9;
+            border-left: 4px solid #667eea;
+        }
+        .feature h3 {
+            margin-top: 0;
+            color: #667eea;
+        }
+        code {
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        .example {
+            background: #fff9e6;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🗺️ Navigation Path Analysis - UX Optimization</h1>
+    
+    <div class="section">
+        <h2>Overview</h2>
+        <p>Navigation path analysis tracks how users move through your website, identifying common patterns, friction points, and optimization opportunities. This metric is essential for multi-page websites to understand user behavior and improve UX.</p>
+    </div>
+
+    <div class="section">
+        <h2>Features Implemented</h2>
+        
+        <div class="feature">
+            <h3>1. Navigation Paths Table</h3>
+            <p>Shows the most common sequences of pages users visit, helping identify popular user journeys.</p>
+            <div class="example">
+                <strong>Example:</strong><br>
+                / → /products → /product/123 → /cart (45 sessions, 12.3% of total)
+            </div>
+            <p><strong>Metrics tracked:</strong></p>
+            <ul>
+                <li>Path sequence (up to 5 pages)</li>
+                <li>Number of sessions following this path</li>
+                <li>Percentage of total sessions</li>
+                <li>Average steps in the path</li>
+            </ul>
+        </div>
+
+        <div class="feature">
+            <h3>2. Page Flow Analysis</h3>
+            <p>Visualizes transitions between pages with a Sankey-style flow diagram showing where users go from each page.</p>
+            <div class="example">
+                <strong>Example:</strong><br>
+                /products → /product/123 (120 users)<br>
+                /products → /about (45 users)<br>
+                /product/123 → /cart (89 users)
+            </div>
+            <p><strong>Use cases:</strong></p>
+            <ul>
+                <li>Identify most common navigation patterns</li>
+                <li>Spot unexpected user flows</li>
+                <li>Optimize internal linking structure</li>
+            </ul>
+        </div>
+
+        <div class="feature">
+            <h3>3. Drop-off Points Analysis</h3>
+            <p>Identifies pages where users frequently exit, with exit rates and concern levels to prioritize fixes.</p>
+            <div class="example">
+                <strong>Example:</strong><br>
+                /checkout - 78% exit rate (High concern)<br>
+                /pricing - 45% exit rate (Medium concern)<br>
+                /blog/article - 25% exit rate (Low concern)
+            </div>
+            <p><strong>Metrics tracked:</strong></p>
+            <ul>
+                <li>Exit count per page</li>
+                <li>Total views per page</li>
+                <li>Exit rate percentage</li>
+                <li>Average journey depth before exit</li>
+                <li>Concern level (High/Medium/Low)</li>
+            </ul>
+        </div>
+
+        <div class="feature">
+            <h3>4. Back Button Usage</h3>
+            <p>Detects when users use the back button, indicating potential navigation issues or content problems.</p>
+            <div class="example">
+                <strong>Example:</strong><br>
+                Back Button Rate: 15.3% (89 of 582 navigations)<br>
+                Top pages users return from: /search-results, /product/456
+            </div>
+            <p><strong>Insights:</strong></p>
+            <ul>
+                <li>High back button usage may indicate poor navigation</li>
+                <li>Identifies pages that don't meet user expectations</li>
+                <li>Helps optimize page content and CTAs</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>How It Works</h2>
+        <ol>
+            <li><strong>Data Collection:</strong> The tracking script already captures <code>prev_path</code> and <code>session_id</code> for each pageview</li>
+            <li><strong>Session Reconstruction:</strong> Events are grouped by session and sorted chronologically</li>
+            <li><strong>Path Building:</strong> Sequential page visits are combined into navigation paths</li>
+            <li><strong>Pattern Analysis:</strong> Common paths, transitions, and exit points are identified</li>
+            <li><strong>Visualization:</strong> Results are displayed in tables and flow diagrams</li>
+        </ol>
+    </div>
+
+    <div class="section">
+        <h2>UX Optimization Use Cases</h2>
+        <ul>
+            <li><strong>Improve Navigation:</strong> If users frequently use back button, add better internal links</li>
+            <li><strong>Reduce Friction:</strong> High exit rates on key pages indicate content or UX issues</li>
+            <li><strong>Optimize Funnels:</strong> Understand actual user paths vs. intended conversion funnels</li>
+            <li><strong>Content Strategy:</strong> See which content naturally leads to conversions</li>
+            <li><strong>Information Architecture:</strong> Validate or improve site structure based on actual usage</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>Implementation Details</h2>
+        <p><strong>Files created/modified:</strong></p>
+        <ul>
+            <li><code>dashboard/dashboard-navigation.js</code> - Core navigation analysis logic</li>
+            <li><code>dashboard/dashboard.css</code> - Styles for flow charts and tables</li>
+            <li><code>dashboard/index.html</code> - Added navigation analysis sections</li>
+            <li><code>dashboard/dashboard-core.js</code> - Integrated navigation rendering</li>
+        </ul>
+        
+        <p><strong>No external libraries used</strong> - Pure vanilla JavaScript implementation</p>
+        
+        <p><strong>Data requirements:</strong></p>
+        <ul>
+            <li>Existing tracking already captures all needed data</li>
+            <li>No changes to API or database schema required</li>
+            <li>Works with current event structure</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>Testing</h2>
+        <p>To see navigation path analysis in action:</p>
+        <ol>
+            <li>Deploy the updated dashboard files</li>
+            <li>Select a project with multi-page navigation data</li>
+            <li>Scroll down to see the new sections:
+                <ul>
+                    <li>Navigation Paths</li>
+                    <li>Page Flow Analysis</li>
+                    <li>Drop-off Points</li>
+                    <li>Back Button Usage</li>
+                </ul>
+            </li>
+        </ol>
+    </div>
+</body>
+</html>

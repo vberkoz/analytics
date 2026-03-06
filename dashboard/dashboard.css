@@ -75,3 +75,141 @@ td { font-size: 14px; color: #333; }
     table { min-width: 500px; }
     th, td { padding: 8px; font-size: 12px; }
 }
+
+/* Navigation Path Analysis Styles */
+.path-cell {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    max-width: 500px;
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
+.flow-chart {
+    padding: 10px 0;
+}
+
+.flow-header {
+    display: grid;
+    grid-template-columns: 2fr 3fr 2fr 80px;
+    gap: 10px;
+    padding: 10px;
+    background: #f9f9f9;
+    font-weight: 600;
+    font-size: 13px;
+    color: #666;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+
+.flow-row {
+    display: grid;
+    grid-template-columns: 2fr 3fr 2fr 80px;
+    gap: 10px;
+    padding: 12px 10px;
+    border-bottom: 1px solid #eee;
+    align-items: center;
+}
+
+.flow-from, .flow-to {
+    font-size: 13px;
+    color: #333;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.flow-bar-container {
+    position: relative;
+    height: 24px;
+    background: #f0f0f0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.flow-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.flow-count {
+    text-align: right;
+    font-weight: 600;
+    font-size: 14px;
+    color: #667eea;
+}
+
+.concern-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.concern-badge.high {
+    background: #fee;
+    color: #c33;
+}
+
+.concern-badge.medium {
+    background: #ffeaa7;
+    color: #d63031;
+}
+
+.concern-badge.low {
+    background: #dfe6e9;
+    color: #636e72;
+}
+
+.metric-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.metric-item {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 20px;
+    border-radius: 8px;
+    color: white;
+}
+
+.metric-label {
+    font-size: 13px;
+    opacity: 0.9;
+    margin-bottom: 8px;
+}
+
+.metric-value {
+    font-size: 32px;
+    font-weight: 700;
+    font-family: 'IBM Plex Mono', monospace;
+    margin-bottom: 5px;
+}
+
+.metric-detail {
+    font-size: 12px;
+    opacity: 0.8;
+}
+
+@media (max-width: 768px) {
+    .flow-header, .flow-row {
+        grid-template-columns: 1.5fr 2fr 1.5fr 60px;
+        gap: 5px;
+        font-size: 11px;
+    }
+    
+    .path-cell {
+        max-width: 300px;
+        font-size: 11px;
+    }
+    
+    .metric-value {
+        font-size: 24px;
+    }
+}

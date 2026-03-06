@@ -51,6 +51,7 @@ async function loadData() {
         renderChart();
         renderAllCharts(data.events, startDate, endDate);
         renderAllTables(data.events);
+        renderNavigationAnalysis(data.events);
         renderEventsTable(data.events);
     } catch (err) {
         document.getElementById('eventsTable').innerHTML = `<div class="empty-state">Error: ${err.message}</div>`;
@@ -68,7 +69,8 @@ function setLoadingState() {
     
     ['eventsTable', 'eventsChart', 'trafficSourcesChart', 'sessionDurationChart', 
      'entryPagesTable', 'exitPagesTable', 'countriesTable', 'searchQueriesTable', 
-     'engagingPagesTable', 'newVsReturningChart', 'userGrowthChart'].forEach(id => {
+     'engagingPagesTable', 'newVsReturningChart', 'userGrowthChart',
+     'navigationPathsTable', 'pathFlowChart', 'dropOffPointsTable', 'backButtonChart'].forEach(id => {
         document.getElementById(id).innerHTML = spinnerContainer;
     });
 }

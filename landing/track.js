@@ -1,3 +1,24 @@
+/**
+ * Analytics Tracking Script
+ * 
+ * Features:
+ * - Pageview tracking with navigation path analysis
+ * - Session management with journey tracking
+ * - User engagement metrics (scroll, active time, interactions)
+ * - Search query tracking
+ * - Attribution tracking (UTM parameters)
+ * 
+ * Navigation Path Analysis:
+ * - Tracks prev_path for each pageview to build user journeys
+ * - Maintains session journey history (up to 50 pages)
+ * - Captures journey_depth and pages_visited for UX analysis
+ * - Enables back button detection and drop-off point analysis
+ * 
+ * Manual Tracking API:
+ * - window.trackPageview(path) - Track SPA navigation
+ * - window.trackSearch(query, resultsCount) - Track search queries
+ * - window.trackEngagementNow() - Force engagement tracking
+ */
 (function() {
   const script = document.currentScript;
   const PROJECT_ID = script.getAttribute('data-project');
@@ -89,6 +110,8 @@
     const visitorId = getVisitorId();
     const journey = getJourney();
     const attribution = getAttribution();
+    
+    // Build event with navigation path data for UX analysis
     const event = {
       project_id: PROJECT_ID,
       source_type: SOURCE_TYPE,
@@ -101,7 +124,7 @@
       referrer: document.referrer || null,
       screen: window.screen.width + 'x' + window.screen.height,
       journey_depth: journey.length,
-      prev_path: journey.length > 0 ? journey[journey.length - 1].path : null,
+      prev_path: journey.length > 0 ? journey[journey.length - 1].path : null, // For navigation path analysis
       utm_source: attribution.source,
       utm_medium: attribution.medium,
       utm_campaign: attribution.campaign,
@@ -116,8 +139,16 @@
   const sessionId = getSessionId();
   const isEntryPage = !sessionStorage.getItem('_aq_entry_tracked');
   if (isEntryPage) sessionStorage.setItem('_aq_entry_tracked', '1');
+  
+  // Track current page in journey before sending pageview
+  const journey = getJourney();
+  const prevPath = journey.length > 0 ? journey[journey.length - 1].path : null;
   addToJourney(window.location.pathname);
-  track('pageview', { is_entry: isEntryPage });
+  
+  track('pageview', { 
+    is_entry: isEntryPage,
+    pages_visited: journey.length + 1
+  });
   
   // Auto-detect search from URL parameters
   const urlParams = new URLSearchParams(window.location.search);
@@ -212,6 +243,17 @@
     if (query) {
       track('search', { search_query: query.slice(0, 100).toLowerCase().trim(), search_results_count: resultsCount });
     }
+  };
+  
+  // Expose manual pageview tracking for SPAs
+  window.trackPageview = function(path) {
+    const currentPath = path || window.location.pathname;
+    const journey = getJourney();
+    addToJourney(currentPath);
+    track('pageview', { 
+      path: currentPath,
+      pages_visited: journey.length
+    });
   };
   
   // Expose manual engagement tracking for testing
