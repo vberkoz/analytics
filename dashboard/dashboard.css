@@ -12,16 +12,20 @@
     border: 1px solid #ddd;
     border-radius: 4px;
     font-size: 14px;
+    font-family: 'IBM Plex Sans', sans-serif;
     height: 40px;
     min-width: 0;
 }
-.filters button {
+.filters input[type="date"] {
+    font-family: 'IBM Plex Mono', monospace;
+}
+.filters .btn {
     background: #667eea;
     color: white;
     border: none;
     cursor: pointer;
 }
-.filters button:hover { background: #5568d3; }
+.filters .btn:hover { background: #5568d3; }
 .stats {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));

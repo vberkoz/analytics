@@ -12,7 +12,10 @@ function selectProjectType(type, displayName) {
 // Project management
 async function loadProjects() {
     const token = localStorage.getItem('idToken');
-    document.getElementById('projectTrigger').innerHTML = '<span class="spinner"></span>';
+    const trigger = document.getElementById('projectTrigger');
+    trigger.removeAttribute('style');
+    trigger.className = 'dropdown-trigger dropdown-input';
+    trigger.innerHTML = '<span class="spinner"></span>';
     
     const response = await fetch(`${API_URL}/projects`, {
         headers: { 'Authorization': `Bearer ${token}` },
@@ -27,14 +30,19 @@ async function loadProjects() {
     if (data.projects.length > 0) {
         selectProject(data.projects[0].projectId, data.projects[0].name);
     } else {
-        document.getElementById('projectTrigger').innerHTML = '<span>No Projects</span> <span>▼</span>';
+        trigger.removeAttribute('style');
+        trigger.className = 'dropdown-trigger dropdown-input';
+        trigger.innerHTML = '<span>No Projects</span> <span>▼</span>';
         document.getElementById('eventsTable').innerHTML = '<div class="empty-state">No projects yet. Click "+ Add Project" to get started.</div>';
     }
 }
 
 function selectProject(projectId, name) {
     selectedProject = projectId;
-    document.getElementById('projectTrigger').innerHTML = `<span>${name}</span> <span>▼</span>`;
+    const trigger = document.getElementById('projectTrigger');
+    trigger.removeAttribute('style');
+    trigger.className = 'dropdown-trigger dropdown-input';
+    trigger.innerHTML = `<span>${name}</span> <span>▼</span>`;
     document.getElementById('projectMenu').classList.add('hidden');
     loadData();
 }
@@ -206,6 +214,12 @@ async function loadData() {
         const returnRate = visitorList.length > 0 ? ((returningCount / visitorList.length) * 100).toFixed(1) : '0.0';
         document.getElementById('returnRate').textContent = `${returnRate}%`;
 
+        // Store data globally for chart updates
+        window.chartData = data.events;
+        
+        // Render initial chart
+        renderChart();
+
         // Content engagement depth
         const engagements = data.events.filter(e => e.event_type === 'engagement' && parseInt(e.total_time) > 0);
         if (engagements.length > 0) {
@@ -224,68 +238,7 @@ async function loadData() {
             document.getElementById('avgScrollDepth').textContent = 'N/A';
         }
 
-        // Events over time chart
-        const chartStartDate = new Date(document.getElementById('startDate').value);
-        const chartEndDate = new Date(document.getElementById('endDate').value);
-        const eventsByDate = {};
-        
-        // Initialize all dates in range with 0
-        for (let d = new Date(chartStartDate); d <= chartEndDate; d.setDate(d.getDate() + 1)) {
-            const dateStr = d.toISOString().split('T')[0];
-            eventsByDate[dateStr] = 0;
-        }
-        
-        // Fill in actual event counts
-        data.events.forEach(e => {
-            const date = new Date(parseInt(e.sk)).toISOString().split('T')[0];
-            if (eventsByDate.hasOwnProperty(date)) {
-                eventsByDate[date]++;
-            }
-        });
-        
-        const dates = Object.keys(eventsByDate).sort();
-        const counts = dates.map(d => eventsByDate[d]);
-        const maxCount = Math.max(...counts, 1);
-        
-        if (dates.length > 0) {
-            const width = 800;
-            const height = 200;
-            const padding = 40;
-            const chartWidth = width - padding * 2;
-            const chartHeight = height - padding * 2;
-            
-            const points = dates.map((date, i) => {
-                const x = padding + (i / (dates.length - 1 || 1)) * chartWidth;
-                const y = padding + chartHeight - (counts[i] / maxCount) * chartHeight;
-                return `${x},${y}`;
-            }).join(' ');
-            
-            const chart = `
-                <svg width="100%" height="${height}" viewBox="0 0 ${width} ${height}" style="max-width: 100%;">
-                    <polyline points="${points}" fill="none" stroke="#4f46e5" stroke-width="2"/>
-                    ${dates.map((date, i) => {
-                        const x = padding + (i / (dates.length - 1 || 1)) * chartWidth;
-                        const y = padding + chartHeight - (counts[i] / maxCount) * chartHeight;
-                        return `<circle cx="${x}" cy="${y}" r="4" fill="#4f46e5"/>`;
-                    }).join('')}
-                    <line x1="${padding}" y1="${padding}" x2="${padding}" y2="${height - padding}" stroke="#ddd" stroke-width="1"/>
-                    <line x1="${padding}" y1="${height - padding}" x2="${width - padding}" y2="${height - padding}" stroke="#ddd" stroke-width="1"/>
-                    ${dates.map((date, i) => {
-                        if (dates.length <= 7 || i % Math.ceil(dates.length / 7) === 0) {
-                            const x = padding + (i / (dates.length - 1 || 1)) * chartWidth;
-                            const [y, m, d] = date.split('-');
-                            return `<text x="${x}" y="${height - 10}" text-anchor="middle" font-size="12" fill="#666">${d}.${m}.${y}</text>`;
-                        }
-                        return '';
-                    }).join('')}
-                    <text x="10" y="${padding}" font-size="12" fill="#666">${maxCount}</text>
-                    <text x="10" y="${height - padding}" font-size="12" fill="#666">0</text>
-                </svg>
-            `;
-            document.getElementById('eventsChart').innerHTML = chart;
-        } else {
-            document.getElementById('eventsChart').innerHTML = '<div class="empty-state">No data available.</div>';
-        }
+
 
         // Traffic sources donut chart
         const utmSources = {};
@@ -710,3 +663,130 @@ document.addEventListener('DOMContentLoaded', () => {
     
     loadProjects();
 });
+
+// Chart rendering
+let selectedChartMetric = 'events';
+
+function selectChartMetric(metric, displayName) {
+    selectedChartMetric = metric;
+    document.getElementById('chartMetricTrigger').innerHTML = `<span>${displayName}</span> <span>▼</span>`;
+    document.getElementById('chartMetricMenu').classList.add('hidden');
+    renderChart();
+}
+
+function renderChart() {
+    const metric = selectedChartMetric;
+    const data = window.chartData;
+    
+    if (!data || data.length === 0) {
+        document.getElementById('eventsChart').innerHTML = '<div class="empty-state">No data available.</div>';
+        return;
+    }
+    
+    const chartStartDate = new Date(document.getElementById('startDate').value);
+    const chartEndDate = new Date(document.getElementById('endDate').value);
+    const dataByDate = {};
+    
+    // Initialize all dates
+    for (let d = new Date(chartStartDate); d <= chartEndDate; d.setDate(d.getDate() + 1)) {
+        const dateStr = d.toISOString().split('T')[0];
+        dataByDate[dateStr] = { events: 0, users: new Set(), pageviews: 0, sessions: new Set(), engagements: [], durations: [] };
+    }
+    
+    // Aggregate data by date
+    data.forEach(e => {
+        const date = new Date(parseInt(e.sk)).toISOString().split('T')[0];
+        if (dataByDate[date]) {
+            dataByDate[date].events++;
+            if (e.visitor_id) dataByDate[date].users.add(e.visitor_id);
+            if (e.event_type === 'pageview') dataByDate[date].pageviews++;
+            if (e.session_id) dataByDate[date].sessions.add(e.session_id);
+            if (e.event_type === 'engagement' && parseInt(e.engagement_rate) > 0) {
+                dataByDate[date].engagements.push(parseInt(e.engagement_rate));
+            }
+            if (e.event_type === 'session_end' && parseInt(e.session_duration) > 0) {
+                dataByDate[date].durations.push(parseInt(e.session_duration));
+            }
+        }
+    });
+    
+    const dates = Object.keys(dataByDate).sort();
+    let counts, maxCount, title, formatValue;
+    
+    switch(metric) {
+        case 'users':
+            counts = dates.map(d => dataByDate[d].users.size);
+            title = 'Active Users Over Time';
+            formatValue = v => v;
+            break;
+        case 'pageviews':
+            counts = dates.map(d => dataByDate[d].pageviews);
+            title = 'Pageviews Over Time';
+            formatValue = v => v;
+            break;
+        case 'sessions':
+            counts = dates.map(d => dataByDate[d].sessions.size);
+            title = 'Sessions Over Time';
+            formatValue = v => v;
+            break;
+        case 'engagement':
+            counts = dates.map(d => {
+                const engs = dataByDate[d].engagements;
+                return engs.length > 0 ? Math.round(engs.reduce((a, b) => a + b, 0) / engs.length) : 0;
+            });
+            title = 'Engagement Rate Over Time';
+            formatValue = v => v + '%';
+            break;
+        case 'duration':
+            counts = dates.map(d => {
+                const durs = dataByDate[d].durations;
+                return durs.length > 0 ? Math.round(durs.reduce((a, b) => a + b, 0) / durs.length) : 0;
+            });
+            title = 'Avg Session Duration Over Time';
+            formatValue = v => Math.floor(v / 60) + 'm';
+            break;
+        default:
+            counts = dates.map(d => dataByDate[d].events);
+            title = 'Events Over Time';
+            formatValue = v => v;
+    }
+    
+    document.getElementById('chartTitle').textContent = title;
+    maxCount = Math.max(...counts, 1);
+    
+    const width = 800;
+    const height = 200;
+    const padding = 40;
+    const chartWidth = width - padding * 2;
+    const chartHeight = height - padding * 2;
+    
+    const points = dates.map((date, i) => {
+        const x = padding + (i / (dates.length - 1 || 1)) * chartWidth;
+        const y = padding + chartHeight - (counts[i] / maxCount) * chartHeight;
+        return `${x},${y}`;
+    }).join(' ');
+    
+    const chart = `
+        <svg width="100%" height="${height}" viewBox="0 0 ${width} ${height}" style="max-width: 100%;">
+            <polyline points="${points}" fill="none" stroke="#4f46e5" stroke-width="2"/>
+            ${dates.map((date, i) => {
+                const x = padding + (i / (dates.length - 1 || 1)) * chartWidth;
+                const y = padding + chartHeight - (counts[i] / maxCount) * chartHeight;
+                return `<circle cx="${x}" cy="${y}" r="4" fill="#4f46e5"/>`;
+            }).join('')}
+            <line x1="${padding}" y1="${padding}" x2="${padding}" y2="${height - padding}" stroke="#ddd" stroke-width="1"/>
+            <line x1="${padding}" y1="${height - padding}" x2="${width - padding}" y2="${height - padding}" stroke="#ddd" stroke-width="1"/>
+            ${dates.map((date, i) => {
+                if (dates.length <= 7 || i % Math.ceil(dates.length / 7) === 0) {
+                    const x = padding + (i / (dates.length - 1 || 1)) * chartWidth;
+                    const [y, m, d] = date.split('-');
+                    return `<text x="${x}" y="${height - 10}" text-anchor="middle" font-size="12" fill="#666">${d}.${m}.${y}</text>`;
+                }
+                return '';
+            }).join('')}
+            <text x="10" y="${padding}" font-size="12" fill="#666">${formatValue(maxCount)}</text>
+            <text x="10" y="${height - padding}" font-size="12" fill="#666">0</text>
+        </svg>
+    `;
+    document.getElementById('eventsChart').innerHTML = chart;
+}

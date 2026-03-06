@@ -4,7 +4,7 @@
         <input type="text" id="newProjectId" placeholder="Project ID (e.g., my-website)">
         <input type="text" id="newProjectName" placeholder="Project Name">
         <div class="dropdown" style="width: 100%; margin-bottom: 15px;">
-            <button type="button" class="dropdown-trigger" onclick="toggleDropdown('projectTypeMenu')" id="projectTypeTrigger" style="width: 100%; padding: 10px 15px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; height: 40px; background: white; color: #333; text-align: left; display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
+            <button type="button" class="dropdown-trigger" onclick="toggleDropdown('projectTypeMenu')" id="projectTypeTrigger" style="width: 100%; padding: 10px 15px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; font-family: 'IBM Plex Sans', sans-serif; height: 40px; background: white; color: #333; text-align: left; display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
                 <span>Select Project Type</span> <span>▼</span>
             </button>
             <div id="projectTypeMenu" class="dropdown-menu hidden" style="width: 100%;">
@@ -13,8 +13,10 @@
                 <a href="#" onclick="selectProjectType('webapp', 'Web Application'); return false;">Web Application</a>
             </div>
         </div>
-        <button class="btn btn-primary" onclick="addProject()">Create</button>
-        <button class="btn btn-secondary" onclick="hideAddProject()">Cancel</button>
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+            <button class="btn btn-secondary" onclick="hideAddProject()">Cancel</button>
+            <button class="btn btn-primary" onclick="addProject()">Create</button>
+        </div>
     </div>
 </div>
 

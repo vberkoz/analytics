@@ -79,7 +79,22 @@
         </div>
 
         <div class="events" style="margin-top: 20px; margin-bottom: 20px;">
-            <h2>Events Over Time</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; gap: 15px; flex-wrap: wrap;">
+                <h2 id="chartTitle">Events Over Time</h2>
+                <div class="dropdown" style="text-align: right;">
+                    <button class="dropdown-trigger dropdown-input" onclick="toggleDropdown('chartMetricMenu')" id="chartMetricTrigger" style="width: auto;">
+                        <span>Events</span> <span>▼</span>
+                    </button>
+                    <div id="chartMetricMenu" class="dropdown-menu hidden" style="right: 0; left: auto; text-align: left;">
+                        <a href="#" onclick="selectChartMetric('events', 'Events'); return false;">Events</a>
+                        <a href="#" onclick="selectChartMetric('users', 'Active Users'); return false;">Active Users</a>
+                        <a href="#" onclick="selectChartMetric('pageviews', 'Pageviews'); return false;">Pageviews</a>
+                        <a href="#" onclick="selectChartMetric('sessions', 'Sessions'); return false;">Sessions</a>
+                        <a href="#" onclick="selectChartMetric('engagement', 'Engagement Rate'); return false;">Engagement Rate</a>
+                        <a href="#" onclick="selectChartMetric('duration', 'Avg Session Duration'); return false;">Avg Session Duration</a>
+                    </div>
+                </div>
+            </div>
             <div id="eventsChart" class="loading">Loading...</div>
         </div>
 
