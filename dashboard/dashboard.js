@@ -374,118 +374,84 @@ async function loadData() {
 
         // Entry page analysis
         const entryPages = {};
-        const entryBounces = {};
-        const entrySessions = {};
-        const entryNextPages = {};
-        
         data.events.forEach(e => {
             if (e.event_type === 'pageview' && e.is_entry) {
                 entryPages[e.path] = (entryPages[e.path] || 0) + 1;
-                if (!entrySessions[e.path]) entrySessions[e.path] = new Set();
-                entrySessions[e.path].add(e.session_id);
             }
         });
         
-        // Calculate bounce rate for entry pages
-        Object.keys(entryPages).forEach(path => {
-            const sessions = Array.from(entrySessions[path]);
-            let bounces = 0;
-            sessions.forEach(sid => {
-                const sessionEvents = data.events.filter(e => e.session_id === sid && e.event_type === 'pageview');
-                if (sessionEvents.length === 1) bounces++;
-            });
-            entryBounces[path] = bounces;
-        });
-        
         const entryData = Object.entries(entryPages)
-            .map(([path, entries]) => ({
-                path,
-                entries,
-                sessions: entrySessions[path].size,
-                bounces: entryBounces[path],
-                bounceRate: ((entryBounces[path] / entrySessions[path].size) * 100).toFixed(1)
-            }))
-            .sort((a, b) => b.entries - a.entries)
+            .map(([path, count]) => ({ path, count }))
+            .sort((a, b) => b.count - a.count)
             .slice(0, 10);
         
         if (entryData.length > 0) {
-            const entryTable = `
-                <div class="table-wrapper">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Page</th>
-                                <th>Entries</th>
-                                <th>Sessions</th>
-                                <th>Bounce Rate</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${entryData.map(e => `
-                                <tr>
-                                    <td>${e.path}</td>
-                                    <td>${e.entries}</td>
-                                    <td>${e.sessions}</td>
-                                    <td>${e.bounceRate}%</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>
+            const maxCount = Math.max(...entryData.map(e => e.count));
+            const barHeight = 30;
+            const gap = 10;
+            const labelWidth = 200;
+            const chartWidth = 400;
+            const height = entryData.length * (barHeight + gap) + 20;
+            
+            const bars = entryData.map((e, i) => {
+                const barWidth = (e.count / maxCount) * chartWidth;
+                const y = i * (barHeight + gap) + 10;
+                const displayPath = e.path.length > 30 ? e.path.substring(0, 27) + '...' : e.path;
+                return `
+                    <text x="0" y="${y + barHeight / 2 + 5}" font-size="14" fill="#333">${displayPath}</text>
+                    <rect x="${labelWidth}" y="${y}" width="${barWidth}" height="${barHeight}" fill="#4f46e5" rx="4"/>
+                    <text x="${labelWidth + barWidth + 8}" y="${y + barHeight / 2 + 5}" font-size="14" fill="#333">${e.count}</text>
+                `;
+            }).join('');
+            
+            const chart = `
+                <svg width="100%" height="${height}" viewBox="0 0 ${labelWidth + chartWidth + 60} ${height}" style="max-width:100%;">
+                    ${bars}
+                </svg>
             `;
-            document.getElementById('entryPagesTable').innerHTML = entryTable;
+            document.getElementById('entryPagesTable').innerHTML = chart;
         } else {
             document.getElementById('entryPagesTable').innerHTML = '<div class="empty-state">No entry page data available.</div>';
         }
 
         // Exit page analysis
         const exitPages = {};
-        const pageViews = {};
         data.events.forEach(e => {
-            if (e.event_type === 'pageview') {
-                pageViews[e.path] = (pageViews[e.path] || 0) + 1;
-            }
             if (e.event_type === 'session_end') {
                 exitPages[e.path] = (exitPages[e.path] || 0) + 1;
             }
         });
         
         const exitData = Object.entries(exitPages)
-            .map(([path, exits]) => ({
-                path,
-                exits,
-                views: pageViews[path] || exits,
-                rate: ((exits / (pageViews[path] || exits)) * 100).toFixed(1)
-            }))
-            .sort((a, b) => b.exits - a.exits)
+            .map(([path, count]) => ({ path, count }))
+            .sort((a, b) => b.count - a.count)
             .slice(0, 10);
         
         if (exitData.length > 0) {
-            const exitTable = `
-                <div class="table-wrapper">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Page</th>
-                                <th>Exits</th>
-                                <th>Pageviews</th>
-                                <th>Exit Rate</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${exitData.map(e => `
-                                <tr>
-                                    <td>${e.path}</td>
-                                    <td>${e.exits}</td>
-                                    <td>${e.views}</td>
-                                    <td>${e.rate}%</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>
+            const maxCount = Math.max(...exitData.map(e => e.count));
+            const barHeight = 30;
+            const gap = 10;
+            const labelWidth = 200;
+            const chartWidth = 400;
+            const height = exitData.length * (barHeight + gap) + 20;
+            
+            const bars = exitData.map((e, i) => {
+                const barWidth = (e.count / maxCount) * chartWidth;
+                const y = i * (barHeight + gap) + 10;
+                const displayPath = e.path.length > 30 ? e.path.substring(0, 27) + '...' : e.path;
+                return `
+                    <text x="0" y="${y + barHeight / 2 + 5}" font-size="14" fill="#333">${displayPath}</text>
+                    <rect x="${labelWidth}" y="${y}" width="${barWidth}" height="${barHeight}" fill="#ef4444" rx="4"/>
+                    <text x="${labelWidth + barWidth + 8}" y="${y + barHeight / 2 + 5}" font-size="14" fill="#333">${e.count}</text>
+                `;
+            }).join('');
+            
+            const chart = `
+                <svg width="100%" height="${height}" viewBox="0 0 ${labelWidth + chartWidth + 60} ${height}" style="max-width:100%;">
+                    ${bars}
+                </svg>
             `;
-            document.getElementById('exitPagesTable').innerHTML = exitTable;
+            document.getElementById('exitPagesTable').innerHTML = chart;
         } else {
             document.getElementById('exitPagesTable').innerHTML = '<div class="empty-state">No exit data available.</div>';
         }
@@ -521,7 +487,7 @@ async function loadData() {
         if (countryData.length > 0) {
             const countryTable = `
                 <div class="table-wrapper">
-                    <table>
+                    <table class="fit-content">
                         <thead>
                             <tr>
                                 <th>Country</th>
@@ -562,7 +528,7 @@ async function loadData() {
         if (searchData.length > 0) {
             const searchTable = `
                 <div class="table-wrapper">
-                    <table>
+                    <table class="fit-content">
                         <thead>
                             <tr>
                                 <th>Search Query</th>

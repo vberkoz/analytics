@@ -47,6 +47,7 @@
 .widgets-row .events { min-width: 0; }
 .table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 table { width: 100%; border-collapse: collapse; min-width: 800px; }
+table.fit-content { min-width: 100%; }
 th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; white-space: nowrap; }
 th { background: #f9f9f9; font-weight: 600; color: #666; font-size: 14px; }
 td { font-size: 14px; color: #333; }
