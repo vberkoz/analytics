@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;600;700&family=IBM+Plex+Mono&display=swap');
+
 * {
     margin: 0;
     padding: 0;
@@ -5,7 +7,7 @@
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     min-height: 100vh;
     display: flex;
@@ -73,7 +75,7 @@ h1 {
 }
 
 .code-block code {
-    font-family: 'Monaco', 'Courier New', monospace;
+    font-family: 'IBM Plex Mono', 'Monaco', 'Courier New', monospace;
     font-size: 0.9rem;
     line-height: 1.6;
 }

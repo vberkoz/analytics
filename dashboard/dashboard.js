@@ -131,6 +131,9 @@ async function loadData() {
     document.getElementById('topSource').innerHTML = '<span class="spinner"></span>';
     document.getElementById('pagesPerSession').innerHTML = '<span class="spinner"></span>';
     document.getElementById('returnRate').innerHTML = '<span class="spinner"></span>';
+    document.getElementById('engagementRate').innerHTML = '<span class="spinner"></span>';
+    document.getElementById('avgActiveTime').innerHTML = '<span class="spinner"></span>';
+    document.getElementById('avgScrollDepth').innerHTML = '<span class="spinner"></span>';
     document.getElementById('eventsTable').innerHTML = '<div class="spinner-container"><span class="spinner"></span></div>';
     document.getElementById('eventsChart').innerHTML = '<div class="spinner-container"><span class="spinner"></span></div>';
     document.getElementById('trafficSourcesChart').innerHTML = '<div class="spinner-container"><span class="spinner"></span></div>';
@@ -139,6 +142,7 @@ async function loadData() {
     document.getElementById('exitPagesTable').innerHTML = '<div class="spinner-container"><span class="spinner"></span></div>';
     document.getElementById('countriesTable').innerHTML = '<div class="spinner-container"><span class="spinner"></span></div>';
     document.getElementById('searchQueriesTable').innerHTML = '<div class="spinner-container"><span class="spinner"></span></div>';
+    document.getElementById('engagingPagesTable').innerHTML = '<div class="spinner-container"><span class="spinner"></span></div>';
 
     try {
         const token = localStorage.getItem('idToken');
@@ -201,6 +205,24 @@ async function loadData() {
         const returningCount = visitorList.filter(v => v.sessions.size > 1 || v.isReturning).length;
         const returnRate = visitorList.length > 0 ? ((returningCount / visitorList.length) * 100).toFixed(1) : '0.0';
         document.getElementById('returnRate').textContent = `${returnRate}%`;
+
+        // Content engagement depth
+        const engagements = data.events.filter(e => e.event_type === 'engagement' && parseInt(e.total_time) > 0);
+        if (engagements.length > 0) {
+            const avgEngRate = (engagements.reduce((sum, e) => sum + (parseInt(e.engagement_rate) || 0), 0) / engagements.length).toFixed(0);
+            const avgActive = Math.floor(engagements.reduce((sum, e) => sum + (parseInt(e.active_time) || 0), 0) / engagements.length);
+            const avgScroll = Math.floor(engagements.reduce((sum, e) => sum + (parseInt(e.max_scroll) || 0), 0) / engagements.length);
+            
+            document.getElementById('engagementRate').textContent = `${avgEngRate}%`;
+            const mins = Math.floor(avgActive / 60);
+            const secs = avgActive % 60;
+            document.getElementById('avgActiveTime').textContent = `${mins}m ${secs}s`;
+            document.getElementById('avgScrollDepth').textContent = `${avgScroll}%`;
+        } else {
+            document.getElementById('engagementRate').textContent = 'N/A';
+            document.getElementById('avgActiveTime').textContent = 'N/A';
+            document.getElementById('avgScrollDepth').textContent = 'N/A';
+        }
 
         // Events over time chart
         const chartStartDate = new Date(document.getElementById('startDate').value);
@@ -549,6 +571,67 @@ async function loadData() {
             document.getElementById('searchQueriesTable').innerHTML = searchTable;
         } else {
             document.getElementById('searchQueriesTable').innerHTML = '<div class="empty-state">No search queries yet.</div>';
+        }
+
+        // Top engaging pages
+        const pageEngagement = {};
+        data.events.forEach(e => {
+            if (e.event_type === 'engagement' && e.path && parseInt(e.total_time) > 0) {
+                if (!pageEngagement[e.path]) {
+                    pageEngagement[e.path] = { total: 0, active: 0, scroll: 0, count: 0 };
+                }
+                pageEngagement[e.path].total += parseInt(e.total_time) || 0;
+                pageEngagement[e.path].active += parseInt(e.active_time) || 0;
+                pageEngagement[e.path].scroll += parseInt(e.max_scroll) || 0;
+                pageEngagement[e.path].count++;
+            }
+        });
+        
+        const engagingPages = Object.entries(pageEngagement)
+            .map(([path, data]) => ({
+                path,
+                engRate: Math.round((data.active / data.total) * 100),
+                avgActive: Math.floor(data.active / data.count),
+                avgScroll: Math.floor(data.scroll / data.count),
+                views: data.count
+            }))
+            .sort((a, b) => b.engRate - a.engRate)
+            .slice(0, 10);
+        
+        if (engagingPages.length > 0) {
+            const engagingTable = `
+                <div class="table-wrapper">
+                    <table class="fit-content">
+                        <thead>
+                            <tr>
+                                <th>Page</th>
+                                <th>Engagement Rate</th>
+                                <th>Avg Active Time</th>
+                                <th>Avg Scroll</th>
+                                <th>Views</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${engagingPages.map(p => {
+                                const mins = Math.floor(p.avgActive / 60);
+                                const secs = p.avgActive % 60;
+                                return `
+                                    <tr>
+                                        <td>${p.path}</td>
+                                        <td>${p.engRate}%</td>
+                                        <td>${mins}m ${secs}s</td>
+                                        <td>${p.avgScroll}%</td>
+                                        <td>${p.views}</td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            document.getElementById('engagingPagesTable').innerHTML = engagingTable;
+        } else {
+            document.getElementById('engagingPagesTable').innerHTML = '<div class="empty-state">No engagement data yet.</div>';
         }
 
         if (data.events.length === 0) {

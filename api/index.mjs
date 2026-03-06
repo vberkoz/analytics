@@ -44,6 +44,11 @@ export const handler = async (event) => {
       search_query: { S: body.search_query || '' },
       search_results_count: { N: String(body.search_results_count || 0) },
       is_entry: { BOOL: body.is_entry || false },
+      total_time: { N: String(body.total_time || 0) },
+      active_time: { N: String(body.active_time || 0) },
+      engagement_rate: { N: String(body.engagement_rate || 0) },
+      max_scroll: { N: String(body.max_scroll || 0) },
+      interactions: { N: String(body.interactions || 0) },
     },
   }));
 

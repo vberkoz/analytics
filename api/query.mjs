@@ -84,6 +84,11 @@ export const handler = async (event) => {
         search_query: item.search_query?.S || '',
         search_results_count: item.search_results_count?.N || '0',
         is_entry: item.is_entry?.BOOL || false,
+        total_time: item.total_time?.N || '0',
+        active_time: item.active_time?.N || '0',
+        engagement_rate: item.engagement_rate?.N || '0',
+        max_scroll: item.max_scroll?.N || '0',
+        interactions: item.interactions?.N || '0',
       });
     }
   }

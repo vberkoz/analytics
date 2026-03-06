@@ -139,6 +139,74 @@
     });
   }, 1000);
 
+  // Content engagement depth tracking
+  let engagementStart = Date.now();
+  let activeTime = 0;
+  let lastActive = Date.now();
+  let isActive = true;
+  let maxScroll = 0;
+  let interactions = 0;
+
+  function updateActiveTime() {
+    if (isActive) {
+      activeTime += Date.now() - lastActive;
+    }
+    lastActive = Date.now();
+  }
+
+  function trackEngagement() {
+    updateActiveTime();
+    const totalTime = Math.floor((Date.now() - engagementStart) / 1000);
+    const activeSeconds = Math.floor(activeTime / 1000);
+    const engagementRate = totalTime > 0 ? Math.round((activeSeconds / totalTime) * 100) : 0;
+    
+    if (totalTime > 0) {
+      track('engagement', {
+        total_time: totalTime,
+        active_time: activeSeconds,
+        engagement_rate: engagementRate,
+        max_scroll: maxScroll,
+        interactions: interactions
+      });
+    }
+  }
+
+  function updateScroll() {
+    const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+    if (scrollHeight > 0) {
+      const scrolled = Math.round((window.scrollY / scrollHeight) * 100);
+      if (scrolled > maxScroll) maxScroll = Math.min(scrolled, 100);
+    }
+  }
+
+  window.addEventListener('scroll', () => {
+    updateScroll();
+    isActive = true;
+    updateActiveTime();
+  }, { passive: true });
+
+  ['click', 'keydown', 'mousemove'].forEach(evt => {
+    window.addEventListener(evt, () => {
+      if (evt === 'click') interactions++;
+      isActive = true;
+      updateActiveTime();
+    }, { passive: true });
+  });
+
+  ['blur', 'visibilitychange'].forEach(evt => {
+    window.addEventListener(evt, () => {
+      if (document.hidden || evt === 'blur') {
+        updateActiveTime();
+        isActive = false;
+      } else {
+        lastActive = Date.now();
+        isActive = true;
+      }
+    });
+  });
+
+  setInterval(trackEngagement, 10000);
+
   // Expose manual tracking API
   window.trackSearch = function(query, resultsCount = 0) {
     if (query) {
@@ -146,8 +214,12 @@
     }
   };
   
+  // Expose manual engagement tracking for testing
+  window.trackEngagementNow = trackEngagement;
+  
   setInterval(updateSession, 60000);
   window.addEventListener('beforeunload', () => {
+    trackEngagement();
     const journey = getJourney();
     const startTime = parseInt(sessionStorage.getItem(SESSION_START_KEY) || Date.now());
     const duration = Math.floor((Date.now() - startTime) / 1000);
