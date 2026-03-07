@@ -32,6 +32,7 @@
   const SESSION_START_KEY = '_aq_start';
   const VISITOR_KEY = '_aq_vid';
   const VISITOR_EXPIRY = 365 * 24 * 60 * 60 * 1000;
+  const LAST_VISIT_KEY = '_aq_last_visit';
 
   function getVisitorId() {
     let stored = localStorage.getItem(VISITOR_KEY);
@@ -47,6 +48,17 @@
   function isReturningVisitor() {
     const sessions = sessionStorage.getItem('_aq_session_count');
     return sessions && parseInt(sessions) > 0;
+  }
+
+  function getDaysSinceLastVisit() {
+    const lastVisit = localStorage.getItem(LAST_VISIT_KEY);
+    if (!lastVisit) return null;
+    const daysSince = Math.floor((Date.now() - parseInt(lastVisit)) / (24 * 60 * 60 * 1000));
+    return daysSince;
+  }
+
+  function updateLastVisit() {
+    localStorage.setItem(LAST_VISIT_KEY, Date.now().toString());
   }
 
   function getSessionId() {
@@ -110,6 +122,7 @@
     const visitorId = getVisitorId();
     const journey = getJourney();
     const attribution = getAttribution();
+    const daysSinceLastVisit = getDaysSinceLastVisit();
     
     // Build event with navigation path data for UX analysis
     const event = {
@@ -120,6 +133,7 @@
       session_id: sessionId,
       visitor_id: visitorId,
       is_returning: isReturningVisitor(),
+      days_since_last_visit: daysSinceLastVisit,
       path: window.location.pathname,
       referrer: document.referrer || null,
       screen: window.screen.width + 'x' + window.screen.height,
@@ -138,7 +152,10 @@
 
   const sessionId = getSessionId();
   const isEntryPage = !sessionStorage.getItem('_aq_entry_tracked');
-  if (isEntryPage) sessionStorage.setItem('_aq_entry_tracked', '1');
+  if (isEntryPage) {
+    sessionStorage.setItem('_aq_entry_tracked', '1');
+    updateLastVisit(); // Update last visit timestamp on new session
+  }
   
   // Track current page in journey before sending pageview
   const journey = getJourney();

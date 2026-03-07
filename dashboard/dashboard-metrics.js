@@ -68,4 +68,27 @@ function renderMetrics(events, startDate, endDate) {
         document.getElementById('avgActiveTime').textContent = 'N/A';
         document.getElementById('avgScrollDepth').textContent = 'N/A';
     }
+
+    // Session frequency - average days between visits
+    const visitsWithFrequency = events.filter(e => 
+        e.event_type === 'pageview' && 
+        e.is_entry && 
+        e.days_since_last_visit !== null && 
+        e.days_since_last_visit !== undefined &&
+        parseInt(e.days_since_last_visit) >= 0
+    );
+    
+    if (visitsWithFrequency.length > 0) {
+        const avgFrequency = visitsWithFrequency.reduce((sum, e) => sum + parseInt(e.days_since_last_visit), 0) / visitsWithFrequency.length;
+        if (avgFrequency < 1) {
+            document.getElementById('sessionFrequency').textContent = '< 1 day';
+        } else if (avgFrequency < 7) {
+            document.getElementById('sessionFrequency').textContent = `${avgFrequency.toFixed(1)} days`;
+        } else {
+            const weeks = (avgFrequency / 7).toFixed(1);
+            document.getElementById('sessionFrequency').textContent = `${weeks} weeks`;
+        }
+    } else {
+        document.getElementById('sessionFrequency').textContent = 'N/A';
+    }
 }
