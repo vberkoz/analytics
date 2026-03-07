@@ -63,7 +63,8 @@ function setLoadingState() {
     const spinnerContainer = '<div class="spinner-container"><span class="spinner"></span></div>';
     
     ['totalEvents', 'pageviews', 'avgSessionDuration', 'uniqueScreens', 'topSource', 
-     'pagesPerSession', 'returnRate', 'engagementRate', 'avgActiveTime', 'avgScrollDepth'].forEach(id => {
+     'pagesPerSession', 'returnRate', 'engagementRate', 'avgActiveTime', 'avgScrollDepth',
+     'sessionFrequency', 'topCountry', 'topLanguage'].forEach(id => {
         document.getElementById(id).innerHTML = spinner;
     });
     

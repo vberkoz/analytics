@@ -91,4 +91,29 @@ function renderMetrics(events, startDate, endDate) {
     } else {
         document.getElementById('sessionFrequency').textContent = 'N/A';
     }
+
+    // Top country
+    const countries = {};
+    events.forEach(e => {
+        if (e.country && e.country !== 'XX') {
+            countries[e.country] = (countries[e.country] || 0) + 1;
+        }
+    });
+    const topCountry = Object.entries(countries).sort((a, b) => b[1] - a[1])[0];
+    const countryNames = {
+        'US': '🇺🇸 US', 'GB': '🇬🇧 UK', 'DE': '🇩🇪 DE', 'FR': '🇫🇷 FR', 'CA': '🇨🇦 CA',
+        'AU': '🇦🇺 AU', 'JP': '🇯🇵 JP', 'CN': '🇨🇳 CN', 'IN': '🇮🇳 IN', 'BR': '🇧🇷 BR'
+    };
+    document.getElementById('topCountry').textContent = topCountry ? (countryNames[topCountry[0]] || topCountry[0]) : 'N/A';
+
+    // Top language
+    const languages = {};
+    events.forEach(e => {
+        if (e.language) {
+            const lang = e.language.split('-')[0];
+            languages[lang] = (languages[lang] || 0) + 1;
+        }
+    });
+    const topLang = Object.entries(languages).sort((a, b) => b[1] - a[1])[0];
+    document.getElementById('topLanguage').textContent = topLang ? topLang[0].toUpperCase() : 'N/A';
 }

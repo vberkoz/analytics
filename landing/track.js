@@ -117,12 +117,21 @@
     sessionStorage.setItem(JOURNEY_KEY, JSON.stringify(journey));
   }
 
+  function getGeolocation() {
+    const cached = sessionStorage.getItem('_aq_geo');
+    if (cached) return JSON.parse(cached);
+    const geo = { timezone: Intl.DateTimeFormat().resolvedOptions().timeZone, language: navigator.language };
+    sessionStorage.setItem('_aq_geo', JSON.stringify(geo));
+    return geo;
+  }
+
   function track(eventType, data = {}) {
     const sessionId = getSessionId();
     const visitorId = getVisitorId();
     const journey = getJourney();
     const attribution = getAttribution();
     const daysSinceLastVisit = getDaysSinceLastVisit();
+    const geo = getGeolocation();
     
     // Build event with navigation path data for UX analysis
     const event = {
@@ -145,6 +154,8 @@
       utm_term: attribution.term,
       utm_content: attribution.content,
       landing_page: attribution.landing_page,
+      timezone: geo.timezone,
+      language: geo.language,
       ...data
     };
     navigator.sendBeacon(API_URL, JSON.stringify(event));

@@ -4,6 +4,8 @@ function renderAllTables(events) {
     renderCountriesTable(events);
     renderSearchQueriesTable(events);
     renderEngagingPagesTable(events);
+    renderTimezonesTable(events);
+    renderLanguagesTable(events);
 }
 
 function renderEntryPagesTable(events) {
@@ -248,5 +250,118 @@ function renderEngagingPagesTable(events) {
         document.getElementById('engagingPagesTable').innerHTML = engagingTable;
     } else {
         document.getElementById('engagingPagesTable').innerHTML = '<div class="empty-state">No engagement data yet.</div>';
+    }
+}
+
+function renderTimezonesTable(events) {
+    const timezones = {};
+    events.forEach(e => {
+        if (e.timezone) {
+            timezones[e.timezone] = (timezones[e.timezone] || 0) + 1;
+        }
+    });
+    
+    const timezoneData = Object.entries(timezones)
+        .map(([tz, count]) => ({
+            timezone: tz,
+            count,
+            percentage: ((count / events.length) * 100).toFixed(1)
+        }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 10);
+    
+    if (timezoneData.length > 0) {
+        const timezoneTable = `
+            <div class="table-wrapper">
+                <table class="fit-content">
+                    <thead>
+                        <tr>
+                            <th>Timezone</th>
+                            <th>Events</th>
+                            <th>Percentage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${timezoneData.map(t => `
+                            <tr>
+                                <td>${t.timezone}</td>
+                                <td>${t.count}</td>
+                                <td>${t.percentage}%</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+        document.getElementById('timezonesTable').innerHTML = timezoneTable;
+    } else {
+        document.getElementById('timezonesTable').innerHTML = '<div class="empty-state">No timezone data available.</div>';
+    }
+}
+
+function renderLanguagesTable(events) {
+    const languages = {};
+    events.forEach(e => {
+        if (e.language) {
+            languages[e.language] = (languages[e.language] || 0) + 1;
+        }
+    });
+    
+    const languageData = Object.entries(languages)
+        .map(([lang, count]) => ({
+            language: lang,
+            count,
+            percentage: ((count / events.length) * 100).toFixed(1)
+        }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 10);
+    
+    const languageNames = {
+        'en': 'English', 'en-US': 'English (US)', 'en-GB': 'English (UK)',
+        'es': 'Spanish', 'es-ES': 'Spanish (Spain)', 'es-MX': 'Spanish (Mexico)',
+        'fr': 'French', 'fr-FR': 'French (France)', 'fr-CA': 'French (Canada)',
+        'de': 'German', 'de-DE': 'German (Germany)',
+        'it': 'Italian', 'it-IT': 'Italian (Italy)',
+        'pt': 'Portuguese', 'pt-BR': 'Portuguese (Brazil)', 'pt-PT': 'Portuguese (Portugal)',
+        'ja': 'Japanese', 'ja-JP': 'Japanese (Japan)',
+        'zh': 'Chinese', 'zh-CN': 'Chinese (Simplified)', 'zh-TW': 'Chinese (Traditional)',
+        'ko': 'Korean', 'ko-KR': 'Korean (Korea)',
+        'ru': 'Russian', 'ru-RU': 'Russian (Russia)',
+        'ar': 'Arabic', 'ar-SA': 'Arabic (Saudi Arabia)',
+        'hi': 'Hindi', 'hi-IN': 'Hindi (India)',
+        'nl': 'Dutch', 'nl-NL': 'Dutch (Netherlands)',
+        'pl': 'Polish', 'pl-PL': 'Polish (Poland)',
+        'sv': 'Swedish', 'sv-SE': 'Swedish (Sweden)',
+        'da': 'Danish', 'da-DK': 'Danish (Denmark)',
+        'fi': 'Finnish', 'fi-FI': 'Finnish (Finland)',
+        'no': 'Norwegian', 'no-NO': 'Norwegian (Norway)'
+    };
+    
+    if (languageData.length > 0) {
+        const languageTable = `
+            <div class="table-wrapper">
+                <table class="fit-content">
+                    <thead>
+                        <tr>
+                            <th>Language</th>
+                            <th>Events</th>
+                            <th>Percentage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${languageData.map(l => `
+                            <tr>
+                                <td>${languageNames[l.language] || l.language}</td>
+                                <td>${l.count}</td>
+                                <td>${l.percentage}%</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+        document.getElementById('languagesTable').innerHTML = languageTable;
+    } else {
+        document.getElementById('languagesTable').innerHTML = '<div class="empty-state">No language data available.</div>';
     }
 }
