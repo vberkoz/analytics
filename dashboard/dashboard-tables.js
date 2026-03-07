@@ -1,6 +1,7 @@
 function renderAllTables(events) {
     if (selectedProjectType === 'landing') {
         renderCTAClicksTable(events);
+        renderPageLoadPerformanceTable(events);
         renderCountriesTable(events);
         renderEngagingPagesTable(events);
         // Hide multipage-specific tables
@@ -10,7 +11,6 @@ function renderAllTables(events) {
         document.getElementById('navigationPathsTable').parentElement.style.display = 'none';
         document.getElementById('pathFlowChart').parentElement.style.display = 'none';
         document.getElementById('dropOffPointsTable').parentElement.parentElement.style.display = 'none';
-        document.getElementById('timezonesTable').parentElement.style.display = 'none';
         document.getElementById('languagesTable').parentElement.style.display = 'none';
     } else {
         // Restore search queries table title if it was changed
@@ -92,6 +92,134 @@ function renderCTAClicksTable(events) {
         document.getElementById('searchQueriesTable').innerHTML = '<div class="empty-state">No CTA clicks yet.</div>';
         document.getElementById('searchQueriesTable').parentElement.querySelector('h2').textContent = 'CTA Clicks';
         document.getElementById('searchQueriesTable').parentElement.style.display = 'block';
+    }
+}
+
+function renderPageLoadPerformanceTable(events) {
+    const perfEvents = events.filter(e => e.event_type === 'page_load_performance' && parseInt(e.total_load_time) > 0);
+    
+    if (perfEvents.length > 0) {
+        // Calculate averages
+        const avg = {
+            dns: Math.round(perfEvents.reduce((sum, e) => sum + (parseInt(e.dns_time) || 0), 0) / perfEvents.length),
+            tcp: Math.round(perfEvents.reduce((sum, e) => sum + (parseInt(e.tcp_time) || 0), 0) / perfEvents.length),
+            ttfb: Math.round(perfEvents.reduce((sum, e) => sum + (parseInt(e.ttfb) || 0), 0) / perfEvents.length),
+            download: Math.round(perfEvents.reduce((sum, e) => sum + (parseInt(e.download_time) || 0), 0) / perfEvents.length),
+            domProcessing: Math.round(perfEvents.reduce((sum, e) => sum + (parseInt(e.dom_processing) || 0), 0) / perfEvents.length),
+            domInteractive: Math.round(perfEvents.reduce((sum, e) => sum + (parseInt(e.dom_interactive) || 0), 0) / perfEvents.length),
+            domContentLoaded: Math.round(perfEvents.reduce((sum, e) => sum + (parseInt(e.dom_content_loaded) || 0), 0) / perfEvents.length),
+            loadComplete: Math.round(perfEvents.reduce((sum, e) => sum + (parseInt(e.load_complete) || 0), 0) / perfEvents.length),
+            totalLoad: Math.round(perfEvents.reduce((sum, e) => sum + (parseInt(e.total_load_time) || 0), 0) / perfEvents.length),
+            resourceCount: Math.round(perfEvents.reduce((sum, e) => sum + (parseInt(e.resource_count) || 0), 0) / perfEvents.length),
+            resourceSize: Math.round(perfEvents.reduce((sum, e) => sum + (parseInt(e.total_resource_size) || 0), 0) / perfEvents.length)
+        };
+        
+        // Navigation type breakdown
+        const navTypes = {};
+        perfEvents.forEach(e => {
+            const type = e.navigation_type || 'unknown';
+            navTypes[type] = (navTypes[type] || 0) + 1;
+        });
+        
+        // Connection type breakdown
+        const connTypes = {};
+        perfEvents.forEach(e => {
+            const type = e.connection_type || 'unknown';
+            connTypes[type] = (connTypes[type] || 0) + 1;
+        });
+        
+        const formatBytes = (bytes) => {
+            if (bytes < 1024) return `${bytes}B`;
+            if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)}KB`;
+            return `${(bytes / (1024 * 1024)).toFixed(2)}MB`;
+        };
+        
+        const perfTable = `
+            <div class="table-wrapper">
+                <table class="fit-content">
+                    <thead>
+                        <tr>
+                            <th>Metric</th>
+                            <th>Average</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>DNS Lookup</td>
+                            <td>${avg.dns}ms</td>
+                            <td>Time to resolve domain name</td>
+                        </tr>
+                        <tr>
+                            <td>TCP Connection</td>
+                            <td>${avg.tcp}ms</td>
+                            <td>Time to establish connection</td>
+                        </tr>
+                        <tr>
+                            <td>TTFB</td>
+                            <td>${avg.ttfb}ms</td>
+                            <td>Time to first byte from server</td>
+                        </tr>
+                        <tr>
+                            <td>Download</td>
+                            <td>${avg.download}ms</td>
+                            <td>Time to download HTML</td>
+                        </tr>
+                        <tr>
+                            <td>DOM Processing</td>
+                            <td>${avg.domProcessing}ms</td>
+                            <td>Time to parse and process DOM</td>
+                        </tr>
+                        <tr>
+                            <td>DOM Interactive</td>
+                            <td>${avg.domInteractive}ms</td>
+                            <td>Time until DOM is interactive</td>
+                        </tr>
+                        <tr>
+                            <td>DOM Content Loaded</td>
+                            <td>${avg.domContentLoaded}ms</td>
+                            <td>Time until DOMContentLoaded event</td>
+                        </tr>
+                        <tr>
+                            <td>Load Complete</td>
+                            <td>${avg.loadComplete}ms</td>
+                            <td>Time until page fully loaded</td>
+                        </tr>
+                        <tr style="font-weight: bold; background: #f9fafb;">
+                            <td>Total Load Time</td>
+                            <td>${avg.totalLoad}ms</td>
+                            <td>Complete page load time</td>
+                        </tr>
+                        <tr>
+                            <td>Resource Count</td>
+                            <td>${avg.resourceCount}</td>
+                            <td>Average number of resources</td>
+                        </tr>
+                        <tr>
+                            <td>Resource Size</td>
+                            <td>${formatBytes(avg.resourceSize)}</td>
+                            <td>Total size of resources loaded</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div style="margin-top: 20px;">
+                    <strong>Navigation Types:</strong> ${Object.entries(navTypes).map(([type, count]) => `${type}: ${count}`).join(', ')}
+                </div>
+                <div style="margin-top: 10px;">
+                    <strong>Connection Types:</strong> ${Object.entries(connTypes).map(([type, count]) => `${type}: ${count}`).join(', ')}
+                </div>
+                <div style="margin-top: 10px; color: #666; font-size: 14px;">
+                    Based on ${perfEvents.length} page load${perfEvents.length !== 1 ? 's' : ''}
+                </div>
+            </div>
+        `;
+        document.getElementById('timezonesTable').innerHTML = perfTable;
+        document.getElementById('timezonesTable').parentElement.querySelector('h2').textContent = 'Page Load Performance';
+        document.getElementById('timezonesTable').parentElement.style.display = 'block';
+    } else {
+        document.getElementById('timezonesTable').innerHTML = '<div class="empty-state">No performance data yet.</div>';
+        document.getElementById('timezonesTable').parentElement.querySelector('h2').textContent = 'Page Load Performance';
+        document.getElementById('timezonesTable').parentElement.style.display = 'block';
     }
 }
 

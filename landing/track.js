@@ -8,12 +8,20 @@
  * - Search query tracking
  * - Attribution tracking (UTM parameters)
  * - Form submission tracking (primary conversion goal)
+ * - Page load performance tracking (affects all other metrics)
  * 
  * Navigation Path Analysis:
  * - Tracks prev_path for each pageview to build user journeys
  * - Maintains session journey history (up to 50 pages)
  * - Captures journey_depth and pages_visited for UX analysis
  * - Enables back button detection and drop-off point analysis
+ * 
+ * Page Load Performance:
+ * - DNS lookup, TCP connection, TTFB, download times
+ * - DOM processing, interactive, and content loaded timings
+ * - Resource count, size, and slowest resource tracking
+ * - Navigation type (navigate, reload, back/forward)
+ * - Connection type and device memory (when available)
  * 
  * Manual Tracking API:
  * - window.trackPageview(path) - Track SPA navigation
@@ -179,6 +187,80 @@
     is_entry: isEntryPage,
     pages_visited: journey.length + 1
   });
+
+  // Page Load Performance Tracking
+  function trackPageLoadPerformance() {
+    if (!window.performance || !window.performance.timing) return;
+    
+    const timing = window.performance.timing;
+    const navigation = window.performance.navigation;
+    
+    // Calculate key performance metrics
+    const dns = timing.domainLookupEnd - timing.domainLookupStart;
+    const tcp = timing.connectEnd - timing.connectStart;
+    const ttfb = timing.responseStart - timing.requestStart;
+    const download = timing.responseEnd - timing.responseStart;
+    const domProcessing = timing.domComplete - timing.domLoading;
+    const domInteractive = timing.domInteractive - timing.navigationStart;
+    const domContentLoaded = timing.domContentLoadedEventEnd - timing.navigationStart;
+    const loadComplete = timing.loadEventEnd - timing.navigationStart;
+    
+    // Total page load time
+    const totalLoadTime = timing.loadEventEnd - timing.navigationStart;
+    
+    // Get navigation type
+    const navType = navigation.type === 0 ? 'navigate' : 
+                    navigation.type === 1 ? 'reload' : 
+                    navigation.type === 2 ? 'back_forward' : 'other';
+    
+    // Get resource timing if available
+    let resourceCount = 0;
+    let totalResourceSize = 0;
+    let slowestResource = null;
+    let slowestResourceTime = 0;
+    
+    if (window.performance.getEntriesByType) {
+      const resources = window.performance.getEntriesByType('resource');
+      resourceCount = resources.length;
+      
+      resources.forEach(resource => {
+        if (resource.transferSize) totalResourceSize += resource.transferSize;
+        if (resource.duration > slowestResourceTime) {
+          slowestResourceTime = Math.round(resource.duration);
+          slowestResource = resource.name.split('/').pop().slice(0, 100);
+        }
+      });
+    }
+    
+    track('page_load_performance', {
+      dns_time: Math.round(dns),
+      tcp_time: Math.round(tcp),
+      ttfb: Math.round(ttfb),
+      download_time: Math.round(download),
+      dom_processing: Math.round(domProcessing),
+      dom_interactive: Math.round(domInteractive),
+      dom_content_loaded: Math.round(domContentLoaded),
+      load_complete: Math.round(loadComplete),
+      total_load_time: Math.round(totalLoadTime),
+      navigation_type: navType,
+      redirect_count: navigation.redirectCount || 0,
+      resource_count: resourceCount,
+      total_resource_size: totalResourceSize,
+      slowest_resource: slowestResource,
+      slowest_resource_time: slowestResourceTime,
+      connection_type: navigator.connection ? navigator.connection.effectiveType : null,
+      device_memory: navigator.deviceMemory || null
+    });
+  }
+  
+  // Track performance after page load completes
+  if (document.readyState === 'complete') {
+    setTimeout(trackPageLoadPerformance, 0);
+  } else {
+    window.addEventListener('load', () => {
+      setTimeout(trackPageLoadPerformance, 0);
+    });
+  }
   
   // CTA Click Tracking for Landing Pages
   setTimeout(() => {

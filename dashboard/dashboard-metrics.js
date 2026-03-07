@@ -65,6 +65,10 @@ function renderLandingMetrics(events) {
             <div class="value" id="landingPageviews">-</div>
         </div>
         <div class="stat">
+            <h3>Avg Page Load</h3>
+            <div class="value" id="avgPageLoad">-</div>
+        </div>
+        <div class="stat">
             <h3>CTA Clicks</h3>
             <div class="value" id="ctaClicks">-</div>
         </div>
@@ -97,6 +101,19 @@ function renderLandingMetrics(events) {
     // Calculate landing metrics
     const pageviews = events.filter(e => e.event_type === 'pageview').length;
     document.getElementById('landingPageviews').textContent = pageviews;
+    
+    // Avg page load time
+    const perfEvents = events.filter(e => e.event_type === 'page_load_performance' && parseInt(e.total_load_time) > 0);
+    if (perfEvents.length > 0) {
+        const avgLoadTime = Math.floor(perfEvents.reduce((sum, e) => sum + parseInt(e.total_load_time), 0) / perfEvents.length);
+        if (avgLoadTime < 1000) {
+            document.getElementById('avgPageLoad').textContent = `${avgLoadTime}ms`;
+        } else {
+            document.getElementById('avgPageLoad').textContent = `${(avgLoadTime / 1000).toFixed(2)}s`;
+        }
+    } else {
+        document.getElementById('avgPageLoad').textContent = 'N/A';
+    }
     
     // CTA clicks
     const ctaClicks = events.filter(e => e.event_type === 'cta_click');
