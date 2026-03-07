@@ -51,6 +51,8 @@ export const handler = async (event) => {
       engagement_rate: { N: String(body.engagement_rate || 0) },
       max_scroll: { N: String(body.max_scroll || 0) },
       interactions: { N: String(body.interactions || 0) },
+      depth: { N: String(body.depth || 0) },
+      time_to_depth: { N: String(body.time_to_depth || 0) },
     },
   }));
 

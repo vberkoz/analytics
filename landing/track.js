@@ -353,6 +353,9 @@
   let isActive = true;
   let maxScroll = 0;
   let interactions = 0;
+  
+  // Scroll depth milestone tracking
+  const scrollMilestones = { 25: false, 50: false, 75: false, 100: false };
 
   function updateActiveTime() {
     if (isActive) {
@@ -383,6 +386,17 @@
     if (scrollHeight > 0) {
       const scrolled = Math.round((window.scrollY / scrollHeight) * 100);
       if (scrolled > maxScroll) maxScroll = Math.min(scrolled, 100);
+      
+      // Track scroll depth milestones
+      [25, 50, 75, 100].forEach(milestone => {
+        if (scrolled >= milestone && !scrollMilestones[milestone]) {
+          scrollMilestones[milestone] = true;
+          track('scroll_depth', {
+            depth: milestone,
+            time_to_depth: Math.floor((Date.now() - engagementStart) / 1000)
+          });
+        }
+      });
     }
   }
 

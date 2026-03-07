@@ -119,6 +119,7 @@ function renderAllCharts(events, startDate, endDate) {
         renderTrafficSourcesChart(events);
         renderSessionDurationChart(events);
         renderTimeOnPageChart(events);
+        renderScrollDepthChart(events);
         // Hide multipage-specific charts
         document.getElementById('newVsReturningChart').parentElement.style.display = 'none';
         document.getElementById('userGrowthChart').parentElement.style.display = 'none';
@@ -132,9 +133,12 @@ function renderAllCharts(events, startDate, endDate) {
         renderTrafficSourcesChart(events);
         renderSessionDurationChart(events);
         
-        // Hide landing-specific chart
+        // Hide landing-specific charts
         if (document.getElementById('timeOnPageChart')) {
             document.getElementById('timeOnPageChart').parentElement.style.display = 'none';
+        }
+        if (document.getElementById('scrollDepthChart')) {
+            document.getElementById('scrollDepthChart').parentElement.style.display = 'none';
         }
         
         // Show all chart containers
@@ -463,5 +467,90 @@ function renderTimeOnPageChart(events) {
         document.getElementById('timeOnPageChart').innerHTML = chart;
     } else {
         document.getElementById('timeOnPageChart').innerHTML = '<div class="empty-state">No time on page data available.</div>';
+    }
+}
+
+function renderScrollDepthChart(events) {
+    const scrollEvents = events.filter(e => e.event_type === 'scroll_depth');
+    
+    if (scrollEvents.length > 0) {
+        // Count how many users reached each milestone
+        const milestones = { 25: 0, 50: 0, 75: 0, 100: 0 };
+        const uniqueUsers = {};
+        
+        scrollEvents.forEach(e => {
+            const depth = parseInt(e.depth);
+            const userId = e.visitor_id || e.session_id;
+            
+            if (!uniqueUsers[userId]) {
+                uniqueUsers[userId] = new Set();
+            }
+            
+            if (!uniqueUsers[userId].has(depth)) {
+                uniqueUsers[userId].add(depth);
+                if (milestones[depth] !== undefined) {
+                    milestones[depth]++;
+                }
+            }
+        });
+        
+        // Calculate average time to reach each milestone
+        const timeToDepth = { 25: [], 50: [], 75: [], 100: [] };
+        scrollEvents.forEach(e => {
+            const depth = parseInt(e.depth);
+            const time = parseInt(e.time_to_depth);
+            if (!isNaN(time) && time >= 0 && timeToDepth[depth]) {
+                timeToDepth[depth].push(time);
+            }
+        });
+        
+        const avgTimes = {};
+        Object.keys(timeToDepth).forEach(depth => {
+            if (timeToDepth[depth].length > 0) {
+                avgTimes[depth] = Math.floor(timeToDepth[depth].reduce((a, b) => a + b, 0) / timeToDepth[depth].length);
+            } else {
+                avgTimes[depth] = 0;
+            }
+        });
+        
+        const maxCount = Math.max(...Object.values(milestones), 1);
+        const width = 600;
+        const height = 300;
+        const padding = 50;
+        const barWidth = (width - padding * 2) / 4;
+        
+        // Color gradient from light to dark based on depth
+        const colors = ['#10b981', '#06b6d4', '#4f46e5', '#8b5cf6'];
+        
+        const bars = Object.entries(milestones).map(([depth, count], i) => {
+            const barHeight = maxCount > 0 ? (count / maxCount) * (height - padding * 2) : 0;
+            const x = padding + i * barWidth;
+            const y = height - padding - barHeight;
+            const avgTime = avgTimes[depth] || 0;
+            const timeLabel = avgTime === 0 ? '-' : (avgTime < 60 ? `${avgTime}s` : `${Math.floor(avgTime / 60)}m ${avgTime % 60}s`);
+            
+            return `
+                <rect x="${x + 10}" y="${y}" width="${barWidth - 20}" height="${barHeight || 1}" fill="${colors[i]}" rx="4"/>
+                <text x="${x + barWidth / 2}" y="${height - 10}" text-anchor="middle" font-size="14" fill="#666" font-weight="600">${depth}%</text>
+                <text x="${x + barWidth / 2}" y="${y - 25}" text-anchor="middle" font-size="16" fill="#333" font-weight="bold">${count}</text>
+                <text x="${x + barWidth / 2}" y="${y - 8}" text-anchor="middle" font-size="11" fill="#666">${timeLabel}</text>
+            `;
+        }).join('');
+        
+        const chart = `
+            <div style="text-align: center; margin-bottom: 10px; color: #666; font-size: 14px;">
+                Users reaching each scroll depth milestone (avg time shown)
+            </div>
+            <svg width="100%" height="${height}" viewBox="0 0 ${width} ${height}" style="max-width:100%;">
+                <line x1="${padding}" y1="${padding}" x2="${padding}" y2="${height - padding}" stroke="#ddd" stroke-width="2"/>
+                <line x1="${padding}" y1="${height - padding}" x2="${width - padding}" y2="${height - padding}" stroke="#ddd" stroke-width="2"/>
+                ${bars}
+                <text x="20" y="${padding}" font-size="12" fill="#666">${maxCount}</text>
+                <text x="20" y="${height - padding}" font-size="12" fill="#666">0</text>
+            </svg>
+        `;
+        document.getElementById('scrollDepthChart').innerHTML = chart;
+    } else {
+        document.getElementById('scrollDepthChart').innerHTML = '<div class="empty-state">No scroll depth data available.</div>';
     }
 }

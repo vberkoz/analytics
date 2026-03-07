@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scroll Depth Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+        .section {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            font-weight: bold;
+            border-bottom: 2px solid #ccc;
+        }
+        .section:nth-child(1) { background: #e0f2fe; }
+        .section:nth-child(2) { background: #dbeafe; }
+        .section:nth-child(3) { background: #bfdbfe; }
+        .section:nth-child(4) { background: #93c5fd; }
+        .section:nth-child(5) { background: #60a5fa; }
+        #debug {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: white;
+            padding: 15px;
+            border: 2px solid #333;
+            border-radius: 8px;
+            font-size: 14px;
+            max-width: 300px;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div id="debug">
+        <strong>Scroll Depth Tracker</strong><br>
+        Current Scroll: <span id="currentScroll">0%</span><br>
+        Max Scroll: <span id="maxScroll">0%</span><br>
+        <hr>
+        <div id="milestones">
+            25%: ❌<br>
+            50%: ❌<br>
+            75%: ❌<br>
+            100%: ❌
+        </div>
+    </div>
+
+    <div class="section">Scroll Down to Test<br>↓</div>
+    <div class="section">25% Milestone<br>↓</div>
+    <div class="section">50% Milestone<br>↓</div>
+    <div class="section">75% Milestone<br>↓</div>
+    <div class="section">100% Milestone!</div>
+
+    <!-- Replace YOUR_PROJECT_ID with your actual project ID -->
+    <script src="track.js" data-project="YOUR_PROJECT_ID" data-source="landing"></script>
+    
+    <script>
+        // Debug overlay to show scroll tracking in real-time
+        function updateDebug() {
+            const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+            if (scrollHeight > 0) {
+                const scrolled = Math.round((window.scrollY / scrollHeight) * 100);
+                document.getElementById('currentScroll').textContent = scrolled + '%';
+            }
+        }
+
+        window.addEventListener('scroll', updateDebug, { passive: true });
+        
+        // Monitor the tracking script's internal state
+        setInterval(() => {
+            // This will show what the tracking script sees
+            const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+            if (scrollHeight > 0) {
+                const scrolled = Math.round((window.scrollY / scrollHeight) * 100);
+                document.getElementById('maxScroll').textContent = scrolled + '%';
+            }
+        }, 100);
+
+        // Listen for scroll_depth events being sent
+        const originalSendBeacon = navigator.sendBeacon;
+        navigator.sendBeacon = function(url, data) {
+            try {
+                const eventData = JSON.parse(data);
+                if (eventData.event_type === 'scroll_depth') {
+                    const depth = eventData.depth;
+                    const milestones = document.getElementById('milestones');
+                    milestones.innerHTML = milestones.innerHTML.replace(
+                        new RegExp(`${depth}%: ❌`),
+                        `${depth}%: ✅ (${eventData.time_to_depth}s)`
+                    );
+                    console.log('Scroll depth event sent:', eventData);
+                }
+            } catch (e) {}
+            return originalSendBeacon.call(this, url, data);
+        };
+    </script>
+</body>
+</html>

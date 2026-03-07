@@ -89,6 +89,8 @@ export const handler = async (event) => {
         engagement_rate: item.engagement_rate?.N || '0',
         max_scroll: item.max_scroll?.N || '0',
         interactions: item.interactions?.N || '0',
+        depth: item.depth?.N || '0',
+        time_to_depth: item.time_to_depth?.N || '0',
       });
     }
   }
