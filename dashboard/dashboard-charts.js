@@ -114,10 +114,22 @@ function renderChart() {
 }
 
 function renderAllCharts(events, startDate, endDate) {
-    renderNewVsReturningChart(events);
-    renderUserGrowthChart(events, startDate, endDate);
-    renderTrafficSourcesChart(events);
-    renderSessionDurationChart(events);
+    if (selectedProjectType === 'landing') {
+        // Show only landing-relevant charts
+        renderTrafficSourcesChart(events);
+        renderSessionDurationChart(events);
+        // Hide multipage-specific charts
+        document.getElementById('newVsReturningChart').parentElement.style.display = 'none';
+        document.getElementById('userGrowthChart').parentElement.style.display = 'none';
+    } else {
+        // Show all charts for multipage/webapp
+        renderNewVsReturningChart(events);
+        renderUserGrowthChart(events, startDate, endDate);
+        renderTrafficSourcesChart(events);
+        renderSessionDurationChart(events);
+        // Show all chart containers
+        document.querySelectorAll('.widgets-row').forEach(el => el.style.display = 'grid');
+    }
 }
 
 function renderNewVsReturningChart(events) {

@@ -23,11 +23,11 @@ h1 { color: #333; font-size: 24px; }
 .dropdown { position: relative; display: inline-block; }
 .dropdown-trigger { cursor: pointer; }
 .dropdown-menu { position: absolute; top: 100%; left: 0; background: white; border: 1px solid #ddd; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); min-width: 150px; z-index: 100; max-height: 300px; overflow-y: auto; }
-.dropdown-menu a { display: block; padding: 10px 15px; color: #333; text-decoration: none; }
+.dropdown-menu a { display: block; padding: 10px 15px; color: #333; text-decoration: none; white-space: nowrap; }
 .dropdown-menu a:hover { background: #f5f5f5; }
-.dropdown-input { width: auto; padding: 10px 15px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; font-family: 'IBM Plex Sans', sans-serif; height: 40px; background: #f9f9f9; color: #333; text-align: left; display: flex; justify-content: space-between; align-items: center; cursor: pointer; gap: 20px; }
+.dropdown-input { width: auto; padding: 10px 15px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; font-family: 'IBM Plex Sans', sans-serif; height: 40px; background: #f9f9f9; color: #333; text-align: left; display: flex; justify-content: space-between; align-items: center; cursor: pointer; gap: 20px; white-space: nowrap; }
 .dropdown-full-width .dropdown-menu { width: 100%; }
-.dropdown-menu a { display: block; padding: 10px 15px; color: #333; text-decoration: none; font-size: 14px; font-family: 'IBM Plex Sans', sans-serif; }
+.dropdown-menu a { display: block; padding: 10px 15px; color: #333; text-decoration: none; font-size: 14px; font-family: 'IBM Plex Sans', sans-serif; white-space: nowrap; }
 
 @media (max-width: 768px) {
     body { padding: 10px; }

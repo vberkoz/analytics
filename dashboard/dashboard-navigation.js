@@ -2,6 +2,10 @@
 // Analyzes user navigation patterns to identify common paths, drop-off points, and UX issues
 
 function renderNavigationAnalysis(events) {
+    if (selectedProjectType === 'landing') {
+        // Hide navigation analysis for landing pages
+        return;
+    }
     renderNavigationPaths(events);
     renderPathFlow(events);
     renderDropOffPoints(events);

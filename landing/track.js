@@ -178,6 +178,36 @@
     pages_visited: journey.length + 1
   });
   
+  // CTA Click Tracking for Landing Pages
+  setTimeout(() => {
+    const ctaSelectors = [
+      'a[href*="signup"]', 'a[href*="register"]', 'a[href*="get-started"]', 'a[href*="try"]',
+      'button[class*="cta"]', 'a[class*="cta"]', '.cta', '[data-cta]',
+      'button[class*="primary"]', 'a[class*="primary"]',
+      'button[type="submit"]', 'input[type="submit"]',
+      'a[href*="buy"]', 'a[href*="purchase"]', 'a[href*="pricing"]',
+      'a[href*="demo"]', 'a[href*="contact"]', 'a[href*="download"]'
+    ];
+    
+    document.querySelectorAll(ctaSelectors.join(', ')).forEach(el => {
+      el.addEventListener('click', (e) => {
+        const ctaText = (el.textContent || el.value || el.getAttribute('aria-label') || '').trim().slice(0, 100);
+        const ctaType = el.tagName.toLowerCase();
+        const ctaHref = el.href || null;
+        const ctaId = el.id || null;
+        const ctaClass = el.className || null;
+        
+        track('cta_click', {
+          cta_text: ctaText,
+          cta_type: ctaType,
+          cta_href: ctaHref,
+          cta_id: ctaId,
+          cta_class: ctaClass
+        });
+      });
+    });
+  }, 1000);
+
   // Auto-detect search from URL parameters
   const urlParams = new URLSearchParams(window.location.search);
   const searchQuery = urlParams.get('q') || urlParams.get('search') || urlParams.get('query') || urlParams.get('s');
@@ -271,6 +301,15 @@
     if (query) {
       track('search', { search_query: query.slice(0, 100).toLowerCase().trim(), search_results_count: resultsCount });
     }
+  };
+  
+  // Expose manual CTA click tracking
+  window.trackCTA = function(text, type = 'custom', href = null) {
+    track('cta_click', {
+      cta_text: text.slice(0, 100),
+      cta_type: type,
+      cta_href: href
+    });
   };
   
   // Expose manual pageview tracking for SPAs

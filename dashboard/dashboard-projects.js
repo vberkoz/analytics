@@ -20,11 +20,11 @@ async function loadProjects() {
     
     const menu = document.getElementById('projectMenu');
     menu.innerHTML = data.projects.map(p => 
-        `<a href="#" onclick="selectProject('${p.projectId}', '${p.name}'); return false;">${p.name}</a>`
+        `<a href="#" onclick="selectProject('${p.projectId}', '${p.name}', '${p.type}'); return false;">${p.name} (${p.type})</a>`
     ).join('');
     
     if (data.projects.length > 0) {
-        selectProject(data.projects[0].projectId, data.projects[0].name);
+        selectProject(data.projects[0].projectId, data.projects[0].name, data.projects[0].type);
     } else {
         trigger.removeAttribute('style');
         trigger.className = 'dropdown-trigger dropdown-input';
@@ -33,12 +33,13 @@ async function loadProjects() {
     }
 }
 
-function selectProject(projectId, name) {
+function selectProject(projectId, name, type) {
     selectedProject = projectId;
+    selectedProjectType = type;
     const trigger = document.getElementById('projectTrigger');
     trigger.removeAttribute('style');
     trigger.className = 'dropdown-trigger dropdown-input';
-    trigger.innerHTML = `<span>${name}</span> <span>▼</span>`;
+    trigger.innerHTML = `<span>${name} (${type})</span> <span>▼</span>`;
     document.getElementById('projectMenu').classList.add('hidden');
     loadData();
 }

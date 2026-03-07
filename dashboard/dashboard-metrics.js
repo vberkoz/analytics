@@ -1,4 +1,124 @@
 function renderMetrics(events, startDate, endDate) {
+    // Hide all stats initially
+    document.querySelectorAll('.stats').forEach(el => el.style.display = 'none');
+    
+    if (selectedProjectType === 'landing') {
+        // Show only landing page metrics
+        renderLandingMetrics(events);
+    } else {
+        // Show multipage/webapp metrics
+        renderMultipageMetrics(events);
+    }
+}
+
+function renderLandingMetrics(events) {
+    // Create landing-specific stats container
+    const statsContainer = document.querySelector('.stats');
+    statsContainer.style.display = 'grid';
+    statsContainer.innerHTML = `
+        <div class="stat">
+            <h3>Total Pageviews</h3>
+            <div class="value" id="landingPageviews">-</div>
+        </div>
+        <div class="stat">
+            <h3>CTA Clicks</h3>
+            <div class="value" id="ctaClicks">-</div>
+        </div>
+        <div class="stat">
+            <h3>Conversion Rate</h3>
+            <div class="value" id="conversionRate">-</div>
+        </div>
+        <div class="stat">
+            <h3>Avg Time on Page</h3>
+            <div class="value" id="avgTimeOnPage">-</div>
+        </div>
+        <div class="stat">
+            <h3>Bounce Rate</h3>
+            <div class="value" id="bounceRate">-</div>
+        </div>
+        <div class="stat">
+            <h3>Avg Scroll Depth</h3>
+            <div class="value" id="landingScrollDepth">-</div>
+        </div>
+        <div class="stat">
+            <h3>Top CTA</h3>
+            <div class="value" id="topCTA">-</div>
+        </div>
+        <div class="stat">
+            <h3>Top Source</h3>
+            <div class="value" id="landingTopSource">-</div>
+        </div>
+    `;
+    
+    // Calculate landing metrics
+    const pageviews = events.filter(e => e.event_type === 'pageview').length;
+    document.getElementById('landingPageviews').textContent = pageviews;
+    
+    // CTA clicks
+    const ctaClicks = events.filter(e => e.event_type === 'cta_click');
+    document.getElementById('ctaClicks').textContent = ctaClicks.length;
+    
+    // Conversion rate (CTA clicks / pageviews)
+    const conversionRate = pageviews > 0 ? ((ctaClicks.length / pageviews) * 100).toFixed(1) : '0.0';
+    document.getElementById('conversionRate').textContent = `${conversionRate}%`;
+    
+    // Avg time on page
+    const engagements = events.filter(e => e.event_type === 'engagement' && parseInt(e.total_time) > 0);
+    if (engagements.length > 0) {
+        const avgTime = Math.floor(engagements.reduce((sum, e) => sum + parseInt(e.total_time), 0) / engagements.length);
+        const mins = Math.floor(avgTime / 60);
+        const secs = avgTime % 60;
+        document.getElementById('avgTimeOnPage').textContent = `${mins}m ${secs}s`;
+    } else {
+        document.getElementById('avgTimeOnPage').textContent = 'N/A';
+    }
+    
+    // Bounce rate (single page sessions)
+    const sessionPages = {};
+    events.forEach(e => {
+        if (e.event_type === 'pageview' && e.session_id) {
+            sessionPages[e.session_id] = (sessionPages[e.session_id] || 0) + 1;
+        }
+    });
+    const totalSessions = Object.keys(sessionPages).length;
+    const bouncedSessions = Object.values(sessionPages).filter(count => count === 1).length;
+    const bounceRate = totalSessions > 0 ? ((bouncedSessions / totalSessions) * 100).toFixed(1) : '0.0';
+    document.getElementById('bounceRate').textContent = `${bounceRate}%`;
+    
+    // Avg scroll depth
+    if (engagements.length > 0) {
+        const avgScroll = Math.floor(engagements.reduce((sum, e) => sum + (parseInt(e.max_scroll) || 0), 0) / engagements.length);
+        document.getElementById('landingScrollDepth').textContent = `${avgScroll}%`;
+    } else {
+        document.getElementById('landingScrollDepth').textContent = 'N/A';
+    }
+    
+    // Top CTA
+    const ctaTexts = {};
+    ctaClicks.forEach(e => {
+        if (e.cta_text) {
+            ctaTexts[e.cta_text] = (ctaTexts[e.cta_text] || 0) + 1;
+        }
+    });
+    const topCTA = Object.entries(ctaTexts).sort((a, b) => b[1] - a[1])[0];
+    document.getElementById('topCTA').textContent = topCTA ? topCTA[0].slice(0, 20) : 'N/A';
+    
+    // Top source
+    const sources = {};
+    events.forEach(e => {
+        if (e.utm_source) {
+            const key = `${e.utm_source}/${e.utm_medium}`;
+            sources[key] = (sources[key] || 0) + 1;
+        }
+    });
+    const topSource = Object.entries(sources).sort((a, b) => b[1] - a[1])[0];
+    document.getElementById('landingTopSource').textContent = topSource ? topSource[0] : 'N/A';
+}
+
+function renderMultipageMetrics(events) {
+    // Show both stats containers for multipage
+    document.querySelectorAll('.stats').forEach(el => el.style.display = 'grid');
+    
     document.getElementById('totalEvents').textContent = events.length;
     document.getElementById('pageviews').textContent = events.filter(e => e.event_type === 'pageview').length;
     document.getElementById('uniqueScreens').textContent = new Set(events.map(e => e.screen)).size;

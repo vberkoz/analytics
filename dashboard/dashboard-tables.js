@@ -1,11 +1,81 @@
 function renderAllTables(events) {
-    renderEntryPagesTable(events);
-    renderExitPagesTable(events);
-    renderCountriesTable(events);
-    renderSearchQueriesTable(events);
-    renderEngagingPagesTable(events);
-    renderTimezonesTable(events);
-    renderLanguagesTable(events);
+    if (selectedProjectType === 'landing') {
+        renderCTAClicksTable(events);
+        renderCountriesTable(events);
+        renderEngagingPagesTable(events);
+        // Hide multipage-specific tables
+        document.getElementById('entryPagesTable').parentElement.style.display = 'none';
+        document.getElementById('exitPagesTable').parentElement.style.display = 'none';
+        document.getElementById('searchQueriesTable').parentElement.style.display = 'none';
+        document.getElementById('navigationPathsTable').parentElement.style.display = 'none';
+        document.getElementById('pathFlowChart').parentElement.style.display = 'none';
+        document.getElementById('dropOffPointsTable').parentElement.parentElement.style.display = 'none';
+        document.getElementById('timezonesTable').parentElement.style.display = 'none';
+        document.getElementById('languagesTable').parentElement.style.display = 'none';
+    } else {
+        renderEntryPagesTable(events);
+        renderExitPagesTable(events);
+        renderCountriesTable(events);
+        renderSearchQueriesTable(events);
+        renderEngagingPagesTable(events);
+        renderTimezonesTable(events);
+        renderLanguagesTable(events);
+        // Show all tables
+        document.querySelectorAll('.events').forEach(el => el.style.display = 'block');
+        document.querySelectorAll('.widgets-row').forEach(el => el.style.display = 'grid');
+    }
+}
+
+function renderCTAClicksTable(events) {
+    const ctaClicks = {};
+    events.forEach(e => {
+        if (e.event_type === 'cta_click' && e.cta_text) {
+            const key = e.cta_text;
+            if (!ctaClicks[key]) {
+                ctaClicks[key] = { count: 0, type: e.cta_type, href: e.cta_href };
+            }
+            ctaClicks[key].count++;
+        }
+    });
+    
+    const ctaData = Object.entries(ctaClicks)
+        .map(([text, data]) => ({ text, ...data }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 20);
+    
+    if (ctaData.length > 0) {
+        const ctaTable = `
+            <div class="table-wrapper">
+                <table class="fit-content">
+                    <thead>
+                        <tr>
+                            <th>CTA Text</th>
+                            <th>Type</th>
+                            <th>Clicks</th>
+                            <th>Destination</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${ctaData.map(c => `
+                            <tr>
+                                <td>${c.text}</td>
+                                <td>${c.type}</td>
+                                <td>${c.count}</td>
+                                <td>${c.href ? (c.href.length > 40 ? c.href.substring(0, 37) + '...' : c.href) : '-'}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+        document.getElementById('searchQueriesTable').innerHTML = ctaTable;
+        document.getElementById('searchQueriesTable').parentElement.querySelector('h2').textContent = 'CTA Clicks';
+        document.getElementById('searchQueriesTable').parentElement.style.display = 'block';
+    } else {
+        document.getElementById('searchQueriesTable').innerHTML = '<div class="empty-state">No CTA clicks yet.</div>';
+        document.getElementById('searchQueriesTable').parentElement.querySelector('h2').textContent = 'CTA Clicks';
+        document.getElementById('searchQueriesTable').parentElement.style.display = 'block';
+    }
 }
 
 function renderEntryPagesTable(events) {
