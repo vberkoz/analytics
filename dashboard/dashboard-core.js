@@ -62,17 +62,22 @@ function setLoadingState() {
     const spinner = '<span class="spinner"></span>';
     const spinnerContainer = '<div class="spinner-container"><span class="spinner"></span></div>';
     
+    // Set spinner for metric elements that exist
     ['totalEvents', 'pageviews', 'avgSessionDuration', 'uniqueScreens', 'topSource', 
      'pagesPerSession', 'returnRate', 'engagementRate', 'avgActiveTime', 'avgScrollDepth',
      'sessionFrequency', 'topCountry', 'topLanguage'].forEach(id => {
-        document.getElementById(id).innerHTML = spinner;
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = spinner;
     });
     
+    // Set spinner for chart/table elements that exist
     ['eventsTable', 'eventsChart', 'trafficSourcesChart', 'sessionDurationChart', 
      'entryPagesTable', 'exitPagesTable', 'countriesTable', 'searchQueriesTable', 
      'engagingPagesTable', 'newVsReturningChart', 'userGrowthChart',
-     'navigationPathsTable', 'pathFlowChart', 'dropOffPointsTable', 'backButtonChart'].forEach(id => {
-        document.getElementById(id).innerHTML = spinnerContainer;
+     'navigationPathsTable', 'pathFlowChart', 'dropOffPointsTable', 'backButtonChart',
+     'timezonesTable', 'languagesTable'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = spinnerContainer;
     });
 }
 

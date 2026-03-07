@@ -122,11 +122,15 @@ function renderAllCharts(events, startDate, endDate) {
         document.getElementById('newVsReturningChart').parentElement.style.display = 'none';
         document.getElementById('userGrowthChart').parentElement.style.display = 'none';
     } else {
-        // Show all charts for multipage/webapp
+        // Show all multipage charts
+        document.getElementById('newVsReturningChart').parentElement.style.display = 'block';
+        document.getElementById('userGrowthChart').parentElement.style.display = 'block';
+        
         renderNewVsReturningChart(events);
         renderUserGrowthChart(events, startDate, endDate);
         renderTrafficSourcesChart(events);
         renderSessionDurationChart(events);
+        
         // Show all chart containers
         document.querySelectorAll('.widgets-row').forEach(el => el.style.display = 'grid');
     }

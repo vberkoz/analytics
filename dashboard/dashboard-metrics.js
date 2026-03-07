@@ -1,12 +1,56 @@
 function renderMetrics(events, startDate, endDate) {
-    // Hide all stats initially
-    document.querySelectorAll('.stats').forEach(el => el.style.display = 'none');
+    // Get all stats containers
+    const statsContainers = document.querySelectorAll('.stats');
     
     if (selectedProjectType === 'landing') {
-        // Show only landing page metrics
-        renderLandingMetrics(events);
+        // Hide second stats container for landing
+        if (statsContainers[1]) statsContainers[1].style.display = 'none';
+        
+        // Show and render landing page metrics in first container
+        if (statsContainers[0]) {
+            statsContainers[0].style.display = 'grid';
+            renderLandingMetrics(events);
+        }
     } else {
-        // Show multipage/webapp metrics
+        // Restore multipage metrics structure if needed
+        if (statsContainers[0] && statsContainers[0].querySelector('#landingPageviews')) {
+            // Need to restore original multipage structure
+            statsContainers[0].innerHTML = `
+                <div class="stat">
+                    <h3>Total Events</h3>
+                    <div class="value" id="totalEvents">-</div>
+                </div>
+                <div class="stat">
+                    <h3>Pageviews</h3>
+                    <div class="value" id="pageviews">-</div>
+                </div>
+                <div class="stat">
+                    <h3>Avg Session</h3>
+                    <div class="value" id="avgSessionDuration">-</div>
+                </div>
+                <div class="stat">
+                    <h3>Pages/Session</h3>
+                    <div class="value" id="pagesPerSession">-</div>
+                </div>
+                <div class="stat">
+                    <h3>Return Rate</h3>
+                    <div class="value" id="returnRate">-</div>
+                </div>
+                <div class="stat">
+                    <h3>Unique Screens</h3>
+                    <div class="value" id="uniqueScreens">-</div>
+                </div>
+                <div class="stat">
+                    <h3>Top Source</h3>
+                    <div class="value" id="topSource">-</div>
+                </div>
+            `;
+        }
+        
+        // Show both stats containers for multipage
+        statsContainers.forEach(el => el.style.display = 'grid');
+        
+        // Render multipage metrics
         renderMultipageMetrics(events);
     }
 }

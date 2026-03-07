@@ -7,6 +7,7 @@
  * - User engagement metrics (scroll, active time, interactions)
  * - Search query tracking
  * - Attribution tracking (UTM parameters)
+ * - Form submission tracking (primary conversion goal)
  * 
  * Navigation Path Analysis:
  * - Tracks prev_path for each pageview to build user journeys
@@ -17,6 +18,7 @@
  * Manual Tracking API:
  * - window.trackPageview(path) - Track SPA navigation
  * - window.trackSearch(query, resultsCount) - Track search queries
+ * - window.trackFormSubmit(formId, formName, fieldCount) - Track form submissions
  * - window.trackEngagementNow() - Force engagement tracking
  */
 (function() {
@@ -228,6 +230,40 @@
     });
   }, 1000);
 
+  // Form submission tracking - Primary conversion goal for landing pages
+  setTimeout(() => {
+    document.querySelectorAll('form').forEach(form => {
+      // Skip search forms (already tracked above)
+      if (form.matches('[role="search"], .search-form, [class*="search"]')) return;
+      
+      form.addEventListener('submit', (e) => {
+        const formId = form.id || null;
+        const formName = form.name || null;
+        const formAction = form.action || null;
+        const formMethod = form.method || 'get';
+        const formClass = form.className || null;
+        
+        // Collect form field types (not values for privacy)
+        const fields = Array.from(form.elements)
+          .filter(el => el.name && el.type !== 'submit' && el.type !== 'button')
+          .map(el => el.type)
+          .join(',');
+        
+        const fieldCount = fields.split(',').filter(f => f).length;
+        
+        track('form_submit', {
+          form_id: formId,
+          form_name: formName,
+          form_action: formAction,
+          form_method: formMethod,
+          form_class: formClass,
+          field_types: fields.slice(0, 200),
+          field_count: fieldCount
+        });
+      });
+    });
+  }, 1000);
+
   // Content engagement depth tracking
   let engagementStart = Date.now();
   let activeTime = 0;
@@ -309,6 +345,15 @@
       cta_text: text.slice(0, 100),
       cta_type: type,
       cta_href: href
+    });
+  };
+  
+  // Expose manual form submission tracking
+  window.trackFormSubmit = function(formId, formName = null, fieldCount = 0) {
+    track('form_submit', {
+      form_id: formId,
+      form_name: formName,
+      field_count: fieldCount
     });
   };
   

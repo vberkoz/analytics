@@ -13,6 +13,22 @@ function renderAllTables(events) {
         document.getElementById('timezonesTable').parentElement.style.display = 'none';
         document.getElementById('languagesTable').parentElement.style.display = 'none';
     } else {
+        // Restore search queries table title if it was changed
+        const searchQueriesTitle = document.getElementById('searchQueriesTable').parentElement.querySelector('h2');
+        if (searchQueriesTitle && searchQueriesTitle.textContent === 'CTA Clicks') {
+            searchQueriesTitle.textContent = 'Top Search Queries';
+        }
+        
+        // Show all multipage tables
+        document.getElementById('entryPagesTable').parentElement.style.display = 'block';
+        document.getElementById('exitPagesTable').parentElement.style.display = 'block';
+        document.getElementById('searchQueriesTable').parentElement.style.display = 'block';
+        document.getElementById('navigationPathsTable').parentElement.style.display = 'block';
+        document.getElementById('pathFlowChart').parentElement.style.display = 'block';
+        document.getElementById('dropOffPointsTable').parentElement.parentElement.style.display = 'block';
+        document.getElementById('timezonesTable').parentElement.style.display = 'block';
+        document.getElementById('languagesTable').parentElement.style.display = 'block';
+        
         renderEntryPagesTable(events);
         renderExitPagesTable(events);
         renderCountriesTable(events);
@@ -20,7 +36,8 @@ function renderAllTables(events) {
         renderEngagingPagesTable(events);
         renderTimezonesTable(events);
         renderLanguagesTable(events);
-        // Show all tables
+        
+        // Show all table containers
         document.querySelectorAll('.events').forEach(el => el.style.display = 'block');
         document.querySelectorAll('.widgets-row').forEach(el => el.style.display = 'grid');
     }

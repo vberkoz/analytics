@@ -4,8 +4,19 @@
 function renderNavigationAnalysis(events) {
     if (selectedProjectType === 'landing') {
         // Hide navigation analysis for landing pages
+        document.getElementById('navigationPathsTable').parentElement.style.display = 'none';
+        document.getElementById('pathFlowChart').parentElement.style.display = 'none';
+        document.getElementById('dropOffPointsTable').parentElement.parentElement.style.display = 'none';
+        document.getElementById('backButtonChart').parentElement.style.display = 'none';
         return;
     }
+    
+    // Show navigation analysis for multipage projects
+    document.getElementById('navigationPathsTable').parentElement.style.display = 'block';
+    document.getElementById('pathFlowChart').parentElement.style.display = 'block';
+    document.getElementById('dropOffPointsTable').parentElement.parentElement.style.display = 'block';
+    document.getElementById('backButtonChart').parentElement.style.display = 'block';
+    
     renderNavigationPaths(events);
     renderPathFlow(events);
     renderDropOffPoints(events);
