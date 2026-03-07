@@ -461,4 +461,38 @@
     const duration = Math.floor((Date.now() - startTime) / 1000);
     track('session_end', { pages_visited: journey.length, session_duration: duration });
   });
+
+  // Time on Page Engagement Indicator (Landing pages only)
+  if (SOURCE_TYPE === 'landing') {
+    const indicator = document.createElement('div');
+    indicator.id = 'time-indicator';
+    indicator.innerHTML = '<span id="time-value">0s</span>';
+    document.body.appendChild(indicator);
+
+    let pageStartTime = Date.now();
+    
+    function updateTimeIndicator() {
+      const elapsed = Math.floor((Date.now() - pageStartTime) / 1000);
+      const timeValue = document.getElementById('time-value');
+      if (timeValue) {
+        if (elapsed < 60) {
+          timeValue.textContent = elapsed + 's';
+        } else {
+          const mins = Math.floor(elapsed / 60);
+          const secs = elapsed % 60;
+          timeValue.textContent = mins + 'm ' + secs + 's';
+        }
+        
+        // Visual feedback based on engagement time
+        if (elapsed >= 30) {
+          indicator.classList.add('engaged');
+        }
+        if (elapsed >= 60) {
+          indicator.classList.add('highly-engaged');
+        }
+      }
+    }
+    
+    setInterval(updateTimeIndicator, 1000);
+  }
 })();

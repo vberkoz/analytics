@@ -130,8 +130,12 @@ function renderLandingMetrics(events) {
         const mins = Math.floor(avgTime / 60);
         const secs = avgTime % 60;
         document.getElementById('avgTimeOnPage').textContent = `${mins}m ${secs}s`;
+        
+        // Store engagement data for chart
+        window.landingEngagementData = engagements;
     } else {
         document.getElementById('avgTimeOnPage').textContent = 'N/A';
+        window.landingEngagementData = [];
     }
     
     // Bounce rate (single page sessions)

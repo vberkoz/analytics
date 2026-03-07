@@ -118,6 +118,7 @@ function renderAllCharts(events, startDate, endDate) {
         // Show only landing-relevant charts
         renderTrafficSourcesChart(events);
         renderSessionDurationChart(events);
+        renderTimeOnPageChart(events);
         // Hide multipage-specific charts
         document.getElementById('newVsReturningChart').parentElement.style.display = 'none';
         document.getElementById('userGrowthChart').parentElement.style.display = 'none';
@@ -130,6 +131,11 @@ function renderAllCharts(events, startDate, endDate) {
         renderUserGrowthChart(events, startDate, endDate);
         renderTrafficSourcesChart(events);
         renderSessionDurationChart(events);
+        
+        // Hide landing-specific chart
+        if (document.getElementById('timeOnPageChart')) {
+            document.getElementById('timeOnPageChart').parentElement.style.display = 'none';
+        }
         
         // Show all chart containers
         document.querySelectorAll('.widgets-row').forEach(el => el.style.display = 'grid');
@@ -409,5 +415,53 @@ function renderSessionDurationChart(events) {
         document.getElementById('sessionDurationChart').innerHTML = chart;
     } else {
         document.getElementById('sessionDurationChart').innerHTML = '<div class="empty-state">No session duration data available.</div>';
+    }
+}
+
+function renderTimeOnPageChart(events) {
+    const engagements = events.filter(e => e.event_type === 'engagement' && parseInt(e.total_time) > 0);
+    
+    if (engagements.length > 0) {
+        const buckets = { '0-10s': 0, '10-30s': 0, '30s-1m': 0, '1-2m': 0, '2-5m': 0, '5m+': 0 };
+        engagements.forEach(e => {
+            const time = parseInt(e.total_time);
+            if (time < 10) buckets['0-10s']++;
+            else if (time < 30) buckets['10-30s']++;
+            else if (time < 60) buckets['30s-1m']++;
+            else if (time < 120) buckets['1-2m']++;
+            else if (time < 300) buckets['2-5m']++;
+            else buckets['5m+']++;
+        });
+        
+        const maxCount = Math.max(...Object.values(buckets));
+        const width = 600;
+        const height = 250;
+        const padding = 40;
+        const barWidth = (width - padding * 2) / Object.keys(buckets).length;
+        
+        // Color bars based on engagement level
+        const colors = ['#ef4444', '#f59e0b', '#10b981', '#06b6d4', '#4f46e5', '#8b5cf6'];
+        
+        const bars = Object.entries(buckets).map(([label, count], i) => {
+            const barHeight = (count / maxCount) * (height - padding * 2);
+            const x = padding + i * barWidth;
+            const y = height - padding - barHeight;
+            return `
+                <rect x="${x + 5}" y="${y}" width="${barWidth - 10}" height="${barHeight}" fill="${colors[i]}"/>
+                <text x="${x + barWidth / 2}" y="${height - 10}" text-anchor="middle" font-size="12" fill="#666">${label}</text>
+                <text x="${x + barWidth / 2}" y="${y - 5}" text-anchor="middle" font-size="12" fill="#333">${count}</text>
+            `;
+        }).join('');
+        
+        const chart = `
+            <svg width="100%" height="${height}" viewBox="0 0 ${width} ${height}" style="max-width:100%;">
+                <line x1="${padding}" y1="${padding}" x2="${padding}" y2="${height - padding}" stroke="#ddd" stroke-width="1"/>
+                <line x1="${padding}" y1="${height - padding}" x2="${width - padding}" y2="${height - padding}" stroke="#ddd" stroke-width="1"/>
+                ${bars}
+            </svg>
+        `;
+        document.getElementById('timeOnPageChart').innerHTML = chart;
+    } else {
+        document.getElementById('timeOnPageChart').innerHTML = '<div class="empty-state">No time on page data available.</div>';
     }
 }
